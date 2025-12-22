@@ -1,5 +1,5 @@
 
-import { User, UserRole, DashboardStats, AttendanceRecord, HRDocument, CompanySettings, TimesheetEntry, LeaveRequest, AppNotification, ExpenseClaim, ExpenseStatus, PayrollRecord, PerformanceRecord, Goal } from './types';
+import { User, UserRole, DashboardStats, AttendanceRecord, HRDocument, CompanySettings, TimesheetEntry, LeaveRequest, AppNotification, ExpenseClaim, ExpenseStatus, PayrollRecord, PerformanceRecord, Goal, Candidate, Job } from './types';
 
 const INITIAL_USERS: User[] = [
   {
@@ -34,6 +34,19 @@ const INITIAL_USERS: User[] = [
     bio: 'Creative designer passionate about crafting intuitive user experiences and modern visual systems.',
     leaveBalances: { earned: 12, sick: 8, casual: 5 }
   }
+];
+
+const INITIAL_CANDIDATES: Candidate[] = [
+  { id: '101', name: 'Alice Freeman', role: 'UX Researcher', status: 'Applied', email: 'alice.f@example.com', phone: '+1 555-0123', experience: '5 Years', score: 4.5, appliedAt: '2024-05-10', avatar: 'https://i.pravatar.cc/150?u=alice', lastUpdate: '2d ago' },
+  { id: '102', name: 'Brad Pitt', role: 'Lead Frontend', status: 'Screening', email: 'brad.p@example.com', phone: '+1 555-0124', experience: '8 Years', score: 4.8, appliedAt: '2024-05-11', avatar: 'https://i.pravatar.cc/150?u=brad', lastUpdate: '1d ago' },
+  { id: '103', name: 'Catherine Zeta', role: 'DevOps Lead', status: 'Interview', email: 'cathy.z@example.com', phone: '+1 555-0125', experience: '6 Years', score: 4.2, appliedAt: '2024-05-12', avatar: 'https://i.pravatar.cc/150?u=cath', lastUpdate: '3h ago' },
+  { id: '104', name: 'David Gandy', role: 'UI Architect', status: 'Offer', email: 'david.g@example.com', phone: '+1 555-0126', experience: '10 Years', score: 4.9, appliedAt: '2024-05-09', avatar: 'https://i.pravatar.cc/150?u=david', lastUpdate: '5h ago' },
+  { id: '105', name: 'Eva Green', role: 'Product Manager', status: 'Applied', email: 'eva.g@example.com', phone: '+1 555-0127', experience: '7 Years', score: 4.6, appliedAt: '2024-05-13', avatar: 'https://i.pravatar.cc/150?u=eva', lastUpdate: 'Just now' },
+];
+
+const INITIAL_JOBS: Job[] = [
+  { id: 'j1', title: 'Senior Frontend Engineer', department: 'Engineering', location: 'Remote / SF', salary: '$140k - $180k', description: 'Lead our UI team using React and Tailwind.', postedAt: '2024-05-01' },
+  { id: 'j2', title: 'Product Designer', department: 'Design', location: 'Austin, TX', salary: '$110k - $140k', description: 'Create beautiful user experiences for our HRMS.', postedAt: '2024-05-05' }
 ];
 
 const INITIAL_PERFORMANCE: PerformanceRecord[] = [
@@ -112,6 +125,8 @@ class MockDatabase {
   private notifications: AppNotification[];
   private payroll: PayrollRecord[];
   private performance: PerformanceRecord[];
+  private candidates: Candidate[];
+  private jobs: Job[];
 
   constructor() {
     this.users = JSON.parse(localStorage.getItem('vatsin_users') || JSON.stringify(INITIAL_USERS));
@@ -123,6 +138,8 @@ class MockDatabase {
     this.notifications = JSON.parse(localStorage.getItem('vatsin_notifications') || '[]');
     this.payroll = JSON.parse(localStorage.getItem('vatsin_payroll') || JSON.stringify(INITIAL_PAYROLL));
     this.performance = JSON.parse(localStorage.getItem('vatsin_performance') || JSON.stringify(INITIAL_PERFORMANCE));
+    this.candidates = JSON.parse(localStorage.getItem('vatsin_candidates') || JSON.stringify(INITIAL_CANDIDATES));
+    this.jobs = JSON.parse(localStorage.getItem('vatsin_jobs') || JSON.stringify(INITIAL_JOBS));
     this.settings = JSON.parse(localStorage.getItem('vatsin_settings') || JSON.stringify({
       companyName: 'Vatsin Solutions Ltd.',
       timezone: 'UTC-08:00 (PST)',
@@ -141,6 +158,8 @@ class MockDatabase {
     localStorage.setItem('vatsin_notifications', JSON.stringify(this.notifications));
     localStorage.setItem('vatsin_payroll', JSON.stringify(this.payroll));
     localStorage.setItem('vatsin_performance', JSON.stringify(this.performance));
+    localStorage.setItem('vatsin_candidates', JSON.stringify(this.candidates));
+    localStorage.setItem('vatsin_jobs', JSON.stringify(this.jobs));
     localStorage.setItem('vatsin_settings', JSON.stringify(this.settings));
   }
 
@@ -149,6 +168,76 @@ class MockDatabase {
     const user = this.users.find(u => u.email === email);
     if (!user) throw new Error('Invalid credentials');
     return { user, token: 'fake-jwt-' + Math.random() };
+  }
+
+  // Recruitment Methods
+  async getCandidates(): Promise<Candidate[]> {
+    await new Promise(r => setTimeout(r, 300));
+    return this.candidates;
+  }
+
+  async getJobs(): Promise<Job[]> {
+    await new Promise(r => setTimeout(r, 300));
+    return this.jobs;
+  }
+
+  async addJob(job: Partial<Job>): Promise<Job> {
+    await new Promise(r => setTimeout(r, 500));
+    const newJob: Job = {
+      id: 'j' + Date.now(),
+      title: job.title || 'Position',
+      department: job.department || 'General',
+      location: job.location || 'Remote',
+      salary: job.salary || 'Negotiable',
+      description: job.description || '',
+      postedAt: new Date().toISOString().split('T')[0]
+    };
+    this.jobs.unshift(newJob);
+    this.save();
+    return newJob;
+  }
+
+  async addCandidate(candidate: Partial<Candidate>): Promise<Candidate> {
+    await new Promise(r => setTimeout(r, 500));
+    const newCandidate: Candidate = {
+      id: 'c' + Date.now(),
+      name: candidate.name || 'Anonymous',
+      role: candidate.role || 'Personnel',
+      status: candidate.status || 'Applied',
+      jobId: candidate.jobId,
+      email: candidate.email || '',
+      phone: candidate.phone || '',
+      experience: 'N/A',
+      score: 0,
+      appliedAt: new Date().toISOString().split('T')[0],
+      avatar: `https://i.pravatar.cc/150?u=${Math.random()}`,
+      lastUpdate: 'Just now'
+    };
+    this.candidates.unshift(newCandidate);
+    this.save();
+    return newCandidate;
+  }
+
+  async moveCandidate(candidateId: string, newStatus: string): Promise<Candidate> {
+    await new Promise(r => setTimeout(r, 400));
+    const candidate = this.candidates.find(c => c.id === candidateId);
+    if (candidate) {
+      candidate.status = newStatus as any;
+      candidate.lastUpdate = 'Just now';
+      this.save();
+      return candidate;
+    }
+    throw new Error('Not found');
+  }
+
+  async updateCandidate(id: string, data: Partial<Candidate>): Promise<Candidate> {
+    const index = this.candidates.findIndex(c => c.id === id);
+    if (index !== -1) {
+      this.candidates[index] = { ...this.candidates[index], ...data };
+      this.save();
+      return this.candidates[index];
+    }
+    throw new Error('Not found');
   }
 
   // Performance methods

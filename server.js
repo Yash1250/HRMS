@@ -20,6 +20,19 @@ let users = [
   { id: '2', email: 'emp@hrms.com', password: 'emp123', role: 'EMPLOYEE', name: 'Sarah Jenkins', department: 'Design', designation: 'UI/UX Designer' }
 ];
 
+let candidates = [
+  { id: '101', name: 'Alice Freeman', role: 'UX Researcher', status: 'Applied', email: 'alice.f@example.com', phone: '+1 555-0123', experience: '5 Years', score: 4.5, appliedAt: '2024-05-10', avatar: 'https://i.pravatar.cc/150?u=alice', lastUpdate: '2d ago' },
+  { id: '102', name: 'Brad Pitt', role: 'Lead Frontend', status: 'Screening', email: 'brad.p@example.com', phone: '+1 555-0124', experience: '8 Years', score: 4.8, appliedAt: '2024-05-11', avatar: 'https://i.pravatar.cc/150?u=brad', lastUpdate: '1d ago' },
+  { id: '103', name: 'Catherine Zeta', role: 'DevOps Lead', status: 'Interview', email: 'cathy.z@example.com', phone: '+1 555-0125', experience: '6 Years', score: 4.2, appliedAt: '2024-05-12', avatar: 'https://i.pravatar.cc/150?u=cath', lastUpdate: '3h ago' },
+  { id: '104', name: 'David Gandy', role: 'UI Architect', status: 'Offer', email: 'david.g@example.com', phone: '+1 555-0126', experience: '10 Years', score: 4.9, appliedAt: '2024-05-09', avatar: 'https://i.pravatar.cc/150?u=david', lastUpdate: '5h ago' },
+  { id: '105', name: 'Eva Green', role: 'Product Manager', status: 'Applied', email: 'eva.g@example.com', phone: '+1 555-0127', experience: '7 Years', score: 4.6, appliedAt: '2024-05-13', avatar: 'https://i.pravatar.cc/150?u=eva', lastUpdate: 'Just now' },
+];
+
+let jobs = [
+  { id: 'j1', title: 'Senior Frontend Engineer', department: 'Engineering', location: 'Remote / SF', salary: '$140k - $180k', description: 'Lead our UI team using React and Tailwind.', postedAt: '2024-05-01' },
+  { id: 'j2', title: 'Product Designer', department: 'Design', location: 'Austin, TX', salary: '$110k - $140k', description: 'Create beautiful user experiences for our HRMS.', postedAt: '2024-05-05' }
+];
+
 let leaves = [];
 let timesheets = [];
 let expenses = [];
@@ -91,6 +104,62 @@ app.post('/api/login', (req, res) => {
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
   const token = jwt.sign({ id: user.id, role: user.role, name: user.name }, SECRET_KEY, { expiresIn: '8h' });
   res.json({ user, token });
+});
+
+// Recruitment API
+app.get('/api/recruitment/candidates', authenticateToken, (req, res) => {
+  res.json(candidates);
+});
+
+app.post('/api/recruitment/candidates', authenticateToken, (req, res) => {
+  const newCandidate = {
+    id: 'c' + Date.now(),
+    appliedAt: new Date().toISOString().split('T')[0],
+    lastUpdate: 'Just now',
+    score: 0,
+    experience: 'Not Specified',
+    avatar: `https://i.pravatar.cc/150?u=${Math.random()}`,
+    ...req.body
+  };
+  candidates.unshift(newCandidate);
+  res.status(201).json(newCandidate);
+});
+
+app.get('/api/recruitment/jobs', authenticateToken, (req, res) => {
+  res.json(jobs);
+});
+
+app.post('/api/recruitment/jobs', authenticateToken, (req, res) => {
+  const newJob = {
+    id: 'j' + Date.now(),
+    postedAt: new Date().toISOString().split('T')[0],
+    ...req.body
+  };
+  jobs.push(newJob);
+  res.status(201).json(newJob);
+});
+
+app.put('/api/recruitment/move', authenticateToken, (req, res) => {
+  const { candidateId, newStatus } = req.body;
+  const candidate = candidates.find(c => c.id === candidateId);
+  if (candidate) {
+    candidate.status = newStatus;
+    candidate.lastUpdate = 'Just now';
+    res.json(candidate);
+  } else {
+    res.status(404).json({ message: 'Candidate not found' });
+  }
+});
+
+app.put('/api/recruitment/candidates/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const index = candidates.findIndex(c => c.id === id);
+  if (index !== -1) {
+    candidates[index] = { ...candidates[index], ...req.body };
+    res.json(candidates[index]);
+  } else {
+    res.status(404).json({ message: 'Candidate not found' });
+  }
 });
 
 // Performance

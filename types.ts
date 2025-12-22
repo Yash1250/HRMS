@@ -7,6 +7,31 @@ export enum UserRole {
   EMPLOYEE = 'EMPLOYEE'
 }
 
+export interface Candidate {
+  id: string;
+  name: string;
+  role: string;
+  jobId?: string; // Optional link to a Job ID
+  status: 'Applied' | 'Screening' | 'Interview' | 'Offer' | 'Hired' | 'Rejected';
+  email: string;
+  phone: string;
+  experience: string;
+  score: number;
+  appliedAt: string;
+  avatar: string;
+  lastUpdate: string;
+}
+
+export interface Job {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  salary: string;
+  description: string;
+  postedAt: string;
+}
+
 export interface LeaveBalance {
   earned: number;
   sick: number;
