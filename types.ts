@@ -72,12 +72,52 @@ export interface LeaveRequest {
   appliedAt: string;
 }
 
+export type ExpenseCategory = 'Travel' | 'Food' | 'Accommodation' | 'Office Supplies';
+export type ExpenseStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface ExpenseClaim {
+  id: string;
+  userId: string;
+  userName: string;
+  title: string;
+  category: ExpenseCategory;
+  project: string;
+  date: string;
+  currency: string;
+  amount: number;
+  comment: string;
+  status: ExpenseStatus;
+  submittedAt: string;
+}
+
+export interface Payslip {
+  month: string;
+  year: number;
+  netSalary: number;
+  status: 'Processed' | 'Pending';
+  pdfUrl: string;
+}
+
+export interface TaxDocument {
+  isEligible: boolean;
+  financialYear: string;
+  generatedDate: string;
+  pdfUrl: string;
+}
+
+export interface PayrollRecord {
+  userId: string;
+  year: number;
+  payslips: Payslip[];
+  form16: TaxDocument;
+}
+
 export interface AppNotification {
   id: string;
   userId: string;
   message: string;
   isRead: boolean;
-  type: 'LEAVE_SUBMITTED' | 'LEAVE_STATUS_CHANGED' | 'GENERAL';
+  type: 'LEAVE_SUBMITTED' | 'LEAVE_STATUS_CHANGED' | 'EXPENSE_SUBMITTED' | 'EXPENSE_STATUS_CHANGED' | 'GENERAL';
   timestamp: string;
 }
 

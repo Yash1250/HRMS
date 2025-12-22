@@ -22,7 +22,24 @@ let users = [
 
 let leaves = [];
 let timesheets = [];
+let expenses = [];
 let notifications = [];
+let payroll = [
+  {
+    userId: '2',
+    year: 2025,
+    payslips: [
+      { month: 'January', year: 2025, netSalary: 7083, status: 'Processed', pdfUrl: '#' },
+      { month: 'February', year: 2025, netSalary: 7083, status: 'Processed', pdfUrl: '#' }
+    ],
+    form16: {
+      isEligible: true,
+      financialYear: '2024-2025',
+      generatedDate: '2025-05-15',
+      pdfUrl: '#'
+    }
+  }
+];
 
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
@@ -45,122 +62,64 @@ app.post('/api/login', (req, res) => {
   res.json({ user, token });
 });
 
-// Leave Management
-app.get('/api/leaves', authenticateToken, (req, res) => {
-  if (req.user.role === 'ADMIN' || req.user.role === 'MANAGER') {
-    return res.json(leaves);
-  }
-  res.json(leaves.filter(l => l.userId === req.user.id));
+// Payroll
+app.get('/api/payroll/:userId', authenticateToken, (req, res) => {
+  const record = payroll.find(p => p.userId === req.params.userId);
+  if (!record) return res.status(404).json({ message: 'Payroll not found' });
+  res.json(record);
 });
 
-app.post('/api/leaves', authenticateToken, (req, res) => {
-  const newLeave = { 
-    id: 'leaf_' + Date.now(), 
+// Expense Management
+app.get('/api/expenses', authenticateToken, (req, res) => {
+  if (req.user.role === 'ADMIN' || req.user.role === 'MANAGER') {
+    return res.json(expenses);
+  }
+  res.json(expenses.filter(e => e.userId === req.user.id));
+});
+
+app.post('/api/expenses', authenticateToken, (req, res) => {
+  const newExp = {
+    id: 'exp_' + Date.now(),
     userId: req.user.id,
     userName: req.user.name,
+    submittedAt: new Date().toISOString(),
     status: 'PENDING',
-    appliedAt: new Date().toISOString(),
-    ...req.body 
+    ...req.body
   };
-  leaves.push(newLeave);
+  expenses.push(newExp);
 
-  // Notify Admins
+  // Notify Admin
   notifications.push({
     id: 'ntf_' + Date.now(),
-    userId: '1', // Hardcoded Admin ID for demo
-    message: `New Leave Request from ${req.user.name}`,
+    userId: '1', // Target admin
+    message: `New Expense Claim of ${newExp.amount} from ${req.user.name}`,
     isRead: false,
     timestamp: new Date().toISOString()
   });
 
-  res.status(201).json(newLeave);
+  res.status(201).json(newExp);
 });
 
-app.put('/api/leaves/:id/status', authenticateToken, (req, res) => {
-  if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER') {
-    return res.sendStatus(403);
-  }
-  const { status, adminComment } = req.body;
-  const leave = leaves.find(l => l.id === req.params.id);
-  if (leave) {
-    leave.status = status;
-    leave.adminComment = adminComment;
-
-    // Notify User
-    notifications.push({
-      id: 'ntf_' + Date.now(),
-      userId: leave.userId,
-      message: `Your leave request for ${leave.startDate} has been ${status.toLowerCase()}.`,
-      isRead: false,
-      timestamp: new Date().toISOString()
-    });
-
-    res.json(leave);
-  } else {
-    res.status(404).json({ message: 'Not found' });
-  }
-});
-
-// Timesheet Management
-app.get('/api/timesheets', authenticateToken, (req, res) => {
-  if (req.user.role === 'ADMIN' || req.user.role === 'MANAGER') {
-    return res.json(timesheets);
-  }
-  res.json(timesheets.filter(ts => ts.userId === req.user.id));
-});
-
-app.post('/api/timesheets', authenticateToken, (req, res) => {
-  const { entries, date, totalHours } = req.body;
-  const newTs = { 
-    id: 'ts_' + Date.now(), 
-    userId: req.user.id,
-    userName: req.user.name,
-    status: 'PENDING',
-    date,
-    entries,
-    totalHours
-  };
-  timesheets.push(newTs);
-
-  // Notify Admins
-  notifications.push({
-    id: 'ntf_' + Date.now(),
-    userId: '1', // Hardcoded Admin ID for demo
-    message: `New Timesheet submitted by ${req.user.name}.`,
-    isRead: false,
-    timestamp: new Date().toISOString()
-  });
-
-  res.status(201).json(newTs);
-});
-
-app.put('/api/timesheets/:id/status', authenticateToken, (req, res) => {
+app.put('/api/expenses/:id/status', authenticateToken, (req, res) => {
   if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER') {
     return res.sendStatus(403);
   }
   const { status } = req.body;
-  const ts = timesheets.find(t => t.id === req.params.id);
-  if (ts) {
-    ts.status = status;
-
-    // Notify the specific Employee
+  const exp = expenses.find(e => e.id === req.params.id);
+  if (exp) {
+    exp.status = status;
+    // Notify User
     notifications.push({
       id: 'ntf_' + Date.now(),
-      userId: ts.userId,
-      message: `Your timesheet for ${ts.date} has been ${status.toLowerCase()}.`,
+      userId: exp.userId,
+      message: `Your expense claim for ${exp.title} was ${status.toLowerCase()}.`,
       isRead: false,
       timestamp: new Date().toISOString()
     });
-
-    res.json(ts);
+    res.json(exp);
   } else {
     res.status(404).json({ message: 'Not found' });
   }
-});
-
-// Notifications
-app.get('/api/notifications', authenticateToken, (req, res) => {
-  res.json(notifications.filter(n => n.userId === req.user.id));
 });
 
 app.listen(PORT, () => {

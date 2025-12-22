@@ -143,7 +143,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
               value={`${stats.myLeaveBalance} Days`} 
               icon={<Calendar />} 
               color="bg-teal-500" 
-              onClick={() => navigate('/attendance')}
+              onClick={() => navigate('/leaves')}
             />
             <StatCard 
               title="Active Shift" 
@@ -164,7 +164,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
               value={stats.pendingLeaves} 
               icon={<TrendingUp />} 
               color="bg-rose-500" 
-              onClick={() => navigate('/attendance')}
+              onClick={() => navigate('/leaves')}
             />
           </>
         )}
@@ -178,7 +178,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
               <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-[2px] font-black">Expenditure Overview ({period})</p>
             </div>
             <button 
-              onClick={() => navigate('/payroll')}
+              onClick={() => navigate(isAdmin ? '/payroll' : '/payroll')}
               className="text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:underline flex items-center gap-2"
             >
               Full Analytics <ExternalLink size={14} />

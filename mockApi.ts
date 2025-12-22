@@ -1,5 +1,5 @@
 
-import { User, UserRole, DashboardStats, AttendanceRecord, HRDocument, CompanySettings, TimesheetEntry, LeaveRequest, AppNotification } from './types';
+import { User, UserRole, DashboardStats, AttendanceRecord, HRDocument, CompanySettings, TimesheetEntry, LeaveRequest, AppNotification, ExpenseClaim, ExpenseStatus, PayrollRecord } from './types';
 
 const INITIAL_USERS: User[] = [
   {
@@ -36,6 +36,24 @@ const INITIAL_USERS: User[] = [
   }
 ];
 
+const INITIAL_PAYROLL: PayrollRecord[] = [
+  {
+    userId: 'USR-002',
+    year: 2025,
+    payslips: [
+      { month: 'January', year: 2025, netSalary: 7083, status: 'Processed', pdfUrl: '#' },
+      { month: 'February', year: 2025, netSalary: 7083, status: 'Processed', pdfUrl: '#' },
+      { month: 'March', year: 2025, netSalary: 7083, status: 'Processed', pdfUrl: '#' }
+    ],
+    form16: {
+      isEligible: true,
+      financialYear: '2024-2025',
+      generatedDate: '2025-05-15',
+      pdfUrl: '#'
+    }
+  }
+];
+
 class MockDatabase {
   private users: User[];
   private attendance: AttendanceRecord[];
@@ -43,7 +61,9 @@ class MockDatabase {
   private settings: CompanySettings;
   private timesheets: TimesheetEntry[];
   private leaves: LeaveRequest[];
+  private expenses: ExpenseClaim[];
   private notifications: AppNotification[];
+  private payroll: PayrollRecord[];
 
   constructor() {
     this.users = JSON.parse(localStorage.getItem('vatsin_users') || JSON.stringify(INITIAL_USERS));
@@ -51,21 +71,15 @@ class MockDatabase {
     this.documents = JSON.parse(localStorage.getItem('vatsin_docs') || '[]');
     this.timesheets = JSON.parse(localStorage.getItem('vatsin_timesheets') || '[]');
     this.leaves = JSON.parse(localStorage.getItem('vatsin_leaves') || '[]');
+    this.expenses = JSON.parse(localStorage.getItem('vatsin_expenses') || '[]');
     this.notifications = JSON.parse(localStorage.getItem('vatsin_notifications') || '[]');
+    this.payroll = JSON.parse(localStorage.getItem('vatsin_payroll') || JSON.stringify(INITIAL_PAYROLL));
     this.settings = JSON.parse(localStorage.getItem('vatsin_settings') || JSON.stringify({
       companyName: 'Vatsin Solutions Ltd.',
       timezone: 'UTC-08:00 (PST)',
       fiscalYearStart: 'January',
       notificationsEnabled: true
     }));
-    
-    // Seed some notifications if empty
-    if (this.notifications.length === 0) {
-      this.notifications = [
-        { id: 'ntf_1', userId: 'USR-001', message: 'Welcome to VatsinHR Enterprise.', isRead: false, type: 'GENERAL', timestamp: new Date().toISOString() }
-      ];
-      this.save();
-    }
   }
 
   private save() {
@@ -74,7 +88,9 @@ class MockDatabase {
     localStorage.setItem('vatsin_docs', JSON.stringify(this.documents));
     localStorage.setItem('vatsin_timesheets', JSON.stringify(this.timesheets));
     localStorage.setItem('vatsin_leaves', JSON.stringify(this.leaves));
+    localStorage.setItem('vatsin_expenses', JSON.stringify(this.expenses));
     localStorage.setItem('vatsin_notifications', JSON.stringify(this.notifications));
+    localStorage.setItem('vatsin_payroll', JSON.stringify(this.payroll));
     localStorage.setItem('vatsin_settings', JSON.stringify(this.settings));
   }
 
@@ -99,6 +115,11 @@ class MockDatabase {
       myLeaveBalance: user.leaveBalances ? (user.leaveBalances.earned + user.leaveBalances.sick + user.leaveBalances.casual) : 0,
       myWorkingHours: user.clockedIn ? '6h 45m' : '0h 0m'
     };
+  }
+
+  async getPayroll(userId: string): Promise<PayrollRecord | null> {
+    await new Promise(r => setTimeout(r, 500));
+    return this.payroll.find(p => p.userId === userId) || null;
   }
 
   async getEmployees(): Promise<User[]> {
@@ -156,6 +177,67 @@ class MockDatabase {
     }
     this.save();
     return { ...user };
+  }
+
+  // Expenses
+  async getExpenses(user: User): Promise<ExpenseClaim[]> {
+    await new Promise(r => setTimeout(r, 400));
+    if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
+      return [...this.expenses].reverse();
+    }
+    return this.expenses.filter(e => e.userId === user.id).reverse();
+  }
+
+  async addExpense(claim: Partial<ExpenseClaim>): Promise<ExpenseClaim> {
+    await new Promise(r => setTimeout(r, 600));
+    const newClaim: ExpenseClaim = {
+      id: 'exp_' + Math.random().toString(36).substr(2, 9),
+      userId: claim.userId || '',
+      userName: claim.userName || '',
+      title: claim.title || 'Expense Claim',
+      category: claim.category || 'Travel',
+      project: claim.project || 'General',
+      date: claim.date || new Date().toISOString().split('T')[0],
+      currency: claim.currency || 'USD',
+      amount: claim.amount || 0,
+      comment: claim.comment || '',
+      status: 'PENDING',
+      submittedAt: new Date().toISOString()
+    };
+    this.expenses.push(newClaim);
+
+    // Notify Admin
+    this.notifications.push({
+      id: 'ntf_' + Math.random().toString(36).substr(2, 9),
+      userId: 'USR-001',
+      message: `New Expense Claim of ${newClaim.currency} ${newClaim.amount} from ${newClaim.userName}`,
+      isRead: false,
+      type: 'EXPENSE_SUBMITTED',
+      timestamp: new Date().toISOString()
+    });
+
+    this.save();
+    return newClaim;
+  }
+
+  async updateExpenseStatus(id: string, status: ExpenseStatus): Promise<void> {
+    await new Promise(r => setTimeout(r, 500));
+    const claim = this.expenses.find(e => e.id === id);
+    if (claim) {
+      claim.status = status;
+
+      // Notify User
+      this.notifications.push({
+        id: 'ntf_' + Math.random().toString(36).substr(2, 9),
+        userId: claim.userId,
+        message: `Your expense claim for ${claim.title} was ${status.toLowerCase()}.`,
+        isRead: false,
+        type: 'EXPENSE_STATUS_CHANGED',
+        timestamp: new Date().toISOString()
+      });
+
+      this.save();
+    }
   }
 
   // Leaves & Notifications
@@ -229,7 +311,6 @@ class MockDatabase {
     this.save();
   }
 
-  // Other Existing
   async getDocuments(): Promise<HRDocument[]> { return this.documents; }
   async addDocument(doc: Partial<HRDocument>): Promise<HRDocument> {
     await new Promise(r => setTimeout(r, 1000));

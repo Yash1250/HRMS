@@ -15,6 +15,7 @@ import EmployeeProfile from './views/EmployeeProfile';
 import Timesheet from './views/Timesheet';
 import LeaveApplication from './views/LeaveApplication';
 import LeaveAdminPanel from './views/LeaveAdminPanel';
+import Expenses from './views/Expenses';
 import { User, AuthState } from './types';
 
 const App: React.FC = () => {
@@ -84,11 +85,13 @@ const App: React.FC = () => {
               <Route path="/employees" element={<EmployeeManagement />} />
               <Route path="/employees/:id" element={<EmployeeProfile />} />
               <Route path="/recruitment" element={<Recruitment />} />
-              <Route path="/payroll" element={<Payroll />} />
+              <Route path="/payroll" element={<Payroll user={auth.user} />} />
+              <Route path="/my-payroll" element={<Payroll user={auth.user} />} />
               <Route path="/attendance" element={<Attendance />} />
               <Route path="/leaves" element={<LeaveApplication user={auth.user} />} />
               <Route path="/admin/leaves" element={<LeaveAdminPanel user={auth.user} />} />
               <Route path="/timesheet" element={<Timesheet user={auth.user} />} />
+              <Route path="/expenses" element={<Expenses user={auth.user} />} />
               <Route path="/docs" element={<Documentation />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
