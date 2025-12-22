@@ -1,5 +1,5 @@
 
-import { User, UserRole, DashboardStats, AttendanceRecord, HRDocument, CompanySettings, TimesheetEntry, LeaveRequest, AppNotification, ExpenseClaim, ExpenseStatus, PayrollRecord } from './types';
+import { User, UserRole, DashboardStats, AttendanceRecord, HRDocument, CompanySettings, TimesheetEntry, LeaveRequest, AppNotification, ExpenseClaim, ExpenseStatus, PayrollRecord, PerformanceRecord, Goal } from './types';
 
 const INITIAL_USERS: User[] = [
   {
@@ -36,6 +36,41 @@ const INITIAL_USERS: User[] = [
   }
 ];
 
+const INITIAL_PERFORMANCE: PerformanceRecord[] = [
+  {
+    userId: 'USR-002',
+    goals: [
+      { id: '101', title: 'Reduce API Latency by 20%', progress: 80, status: 'In Progress', weight: '30%' },
+      { id: '102', title: 'Complete React Certification', progress: 100, status: 'Completed', weight: '20%' },
+      { id: '103', title: 'Mentor 2 Junior Designers', progress: 50, status: 'In Progress', weight: '25%' },
+      { id: '104', title: 'Implement Design System 2.0', progress: 10, status: 'Not Started', weight: '25%' }
+    ],
+    appraisals: {
+      cycle: '2024-Q4',
+      selfRating: 4,
+      managerRating: 4.5,
+      selfComment: 'I delivered the design module ahead of time and improved cross-team communication.',
+      managerComment: 'Excellent work on the UI architecture. Her leadership in the design system update is impressive.',
+      finalStatus: 'Eligible for Promotion'
+    }
+  },
+  {
+    userId: 'USR-001',
+    goals: [
+      { id: '201', title: 'Complete Workforce Audit', progress: 100, status: 'Completed', weight: '40%' },
+      { id: '202', title: 'Rollout New Performance Module', progress: 95, status: 'In Progress', weight: '60%' }
+    ],
+    appraisals: {
+      cycle: '2024-Q4',
+      selfRating: 5,
+      managerRating: null,
+      selfComment: 'Ensured 100% compliance across all departments.',
+      managerComment: '',
+      finalStatus: 'Pending Review'
+    }
+  }
+];
+
 const INITIAL_PAYROLL: PayrollRecord[] = [
   {
     userId: 'USR-002',
@@ -54,26 +89,40 @@ const INITIAL_PAYROLL: PayrollRecord[] = [
   }
 ];
 
+const INITIAL_DOCS: Record<string, HRDocument[]> = {
+  "policies": [
+    { "id": "d1", "name": "IT Security Policy.pdf", "category": "policies", "uploadDate": "2024-01-10", "size": "2.4 MB", "type": "application/pdf" },
+    { "id": "d2", "name": "Leave Policy 2025.pdf", "category": "policies", "uploadDate": "2024-02-15", "size": "1.1 MB", "type": "application/pdf" }
+  ],
+  "contracts": [
+    { "id": "d3", "name": "Standard Employment Agreement.docx", "category": "contracts", "uploadDate": "2023-11-20", "size": "500 KB", "type": "application/pdf" }
+  ],
+  "onboarding": [],
+  "reports": []
+};
+
 class MockDatabase {
   private users: User[];
   private attendance: AttendanceRecord[];
-  private documents: HRDocument[];
+  private documents: Record<string, HRDocument[]>;
   private settings: CompanySettings;
   private timesheets: TimesheetEntry[];
   private leaves: LeaveRequest[];
   private expenses: ExpenseClaim[];
   private notifications: AppNotification[];
   private payroll: PayrollRecord[];
+  private performance: PerformanceRecord[];
 
   constructor() {
     this.users = JSON.parse(localStorage.getItem('vatsin_users') || JSON.stringify(INITIAL_USERS));
     this.attendance = JSON.parse(localStorage.getItem('vatsin_attendance') || '[]');
-    this.documents = JSON.parse(localStorage.getItem('vatsin_docs') || '[]');
+    this.documents = JSON.parse(localStorage.getItem('vatsin_docs_v2') || JSON.stringify(INITIAL_DOCS));
     this.timesheets = JSON.parse(localStorage.getItem('vatsin_timesheets') || '[]');
     this.leaves = JSON.parse(localStorage.getItem('vatsin_leaves') || '[]');
     this.expenses = JSON.parse(localStorage.getItem('vatsin_expenses') || '[]');
     this.notifications = JSON.parse(localStorage.getItem('vatsin_notifications') || '[]');
     this.payroll = JSON.parse(localStorage.getItem('vatsin_payroll') || JSON.stringify(INITIAL_PAYROLL));
+    this.performance = JSON.parse(localStorage.getItem('vatsin_performance') || JSON.stringify(INITIAL_PERFORMANCE));
     this.settings = JSON.parse(localStorage.getItem('vatsin_settings') || JSON.stringify({
       companyName: 'Vatsin Solutions Ltd.',
       timezone: 'UTC-08:00 (PST)',
@@ -85,12 +134,13 @@ class MockDatabase {
   private save() {
     localStorage.setItem('vatsin_users', JSON.stringify(this.users));
     localStorage.setItem('vatsin_attendance', JSON.stringify(this.attendance));
-    localStorage.setItem('vatsin_docs', JSON.stringify(this.documents));
+    localStorage.setItem('vatsin_docs_v2', JSON.stringify(this.documents));
     localStorage.setItem('vatsin_timesheets', JSON.stringify(this.timesheets));
     localStorage.setItem('vatsin_leaves', JSON.stringify(this.leaves));
     localStorage.setItem('vatsin_expenses', JSON.stringify(this.expenses));
     localStorage.setItem('vatsin_notifications', JSON.stringify(this.notifications));
     localStorage.setItem('vatsin_payroll', JSON.stringify(this.payroll));
+    localStorage.setItem('vatsin_performance', JSON.stringify(this.performance));
     localStorage.setItem('vatsin_settings', JSON.stringify(this.settings));
   }
 
@@ -99,6 +149,49 @@ class MockDatabase {
     const user = this.users.find(u => u.email === email);
     if (!user) throw new Error('Invalid credentials');
     return { user, token: 'fake-jwt-' + Math.random() };
+  }
+
+  // Performance methods
+  async getPerformance(userId: string): Promise<PerformanceRecord | null> {
+    await new Promise(r => setTimeout(r, 400));
+    return this.performance.find(p => p.userId === userId) || null;
+  }
+
+  async getAllPerformance(): Promise<PerformanceRecord[]> {
+    await new Promise(r => setTimeout(r, 500));
+    return this.performance;
+  }
+
+  async addGoal(userId: string, goal: Partial<Goal>): Promise<Goal> {
+    await new Promise(r => setTimeout(r, 500));
+    const record = this.performance.find(p => p.userId === userId);
+    const newGoal: Goal = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: goal.title || 'Untitled Goal',
+      progress: 0,
+      status: 'Not Started',
+      weight: goal.weight || '10%'
+    };
+    if (record) {
+      record.goals.push(newGoal);
+    } else {
+      this.performance.push({
+        userId,
+        goals: [newGoal],
+        appraisals: { cycle: '2024-Q4', selfRating: 0, managerRating: null, selfComment: '', managerComment: '', finalStatus: 'Pending' }
+      });
+    }
+    this.save();
+    return newGoal;
+  }
+
+  async updateAppraisal(userId: string, data: Partial<PerformanceRecord['appraisals']>): Promise<void> {
+    await new Promise(r => setTimeout(r, 500));
+    const record = this.performance.find(p => p.userId === userId);
+    if (record) {
+      record.appraisals = { ...record.appraisals, ...data };
+      this.save();
+    }
   }
 
   async getDashboardStats(user: User, period: string = 'Month'): Promise<DashboardStats> {
@@ -311,12 +404,42 @@ class MockDatabase {
     this.save();
   }
 
-  async getDocuments(): Promise<HRDocument[]> { return this.documents; }
+  async getDocumentsByCategory(category: string): Promise<HRDocument[]> {
+    await new Promise(r => setTimeout(r, 400));
+    return this.documents[category] || [];
+  }
+
+  async getDocuments(): Promise<HRDocument[]> {
+    // Legacy support: flatten all
+    return Object.values(this.documents).flat();
+  }
+
   async addDocument(doc: Partial<HRDocument>): Promise<HRDocument> {
     await new Promise(r => setTimeout(r, 1000));
-    const newDoc: HRDocument = { id: 'D'+Math.random(), name: doc.name || '', category: doc.category || 'General', uploadDate: new Date().toISOString(), size: '1MB', type: 'doc' };
-    this.documents.push(newDoc); this.save(); return newDoc;
+    const category = doc.category || 'reports';
+    const newDoc: HRDocument = { 
+      id: 'D'+Math.random(), 
+      name: doc.name || '', 
+      category: category, 
+      uploadDate: new Date().toISOString().split('T')[0], 
+      size: doc.size || '1MB', 
+      type: 'application/pdf' 
+    };
+    
+    if (!this.documents[category]) this.documents[category] = [];
+    this.documents[category].unshift(newDoc);
+    this.save(); 
+    return newDoc;
   }
+
+  async deleteDocument(category: string, id: string): Promise<void> {
+    await new Promise(r => setTimeout(r, 400));
+    if (this.documents[category]) {
+      this.documents[category] = this.documents[category].filter(d => d.id !== id);
+      this.save();
+    }
+  }
+
   async getTimesheets(u: User): Promise<TimesheetEntry[]> { return this.timesheets.filter(t => u.role === 'ADMIN' || t.userId === u.id); }
   async addTimesheet(e: any): Promise<any> { this.timesheets.push({...e, id: 'T'+Math.random()}); this.save(); return e; }
   async updateTimesheetStatus(id: string, s: any): Promise<void> { 

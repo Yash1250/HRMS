@@ -37,6 +37,29 @@ export interface AuthState {
   loading: boolean;
 }
 
+export interface Goal {
+  id: string;
+  title: string;
+  progress: number;
+  status: 'Not Started' | 'In Progress' | 'Completed';
+  weight: string;
+}
+
+export interface Appraisal {
+  cycle: string;
+  selfRating: number;
+  managerRating: number | null;
+  selfComment: string;
+  managerComment: string;
+  finalStatus: string;
+}
+
+export interface PerformanceRecord {
+  userId: string;
+  goals: Goal[];
+  appraisals: Appraisal;
+}
+
 export interface TimesheetLineItem {
   client: string;
   project: string;
@@ -144,7 +167,7 @@ export interface AttendanceRecord {
 export interface HRDocument {
   id: string;
   name: string;
-  category: 'Policy' | 'Contract' | 'Onboarding' | 'General';
+  category: string; // Used as folder identifier
   uploadDate: string;
   size: string;
   type: string;

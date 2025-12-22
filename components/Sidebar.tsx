@@ -15,7 +15,8 @@ import {
   CalendarClock,
   CalendarDays,
   Stamp,
-  Receipt
+  Receipt,
+  TrendingUp
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -37,6 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role, toggleSidebar }) => {
     { name: 'Leave Approvals', path: '/admin/leaves', icon: Stamp, roles: [UserRole.ADMIN, UserRole.MANAGER] },
     { name: 'Timesheets', path: '/timesheet', icon: CalendarClock, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE] },
     { name: 'Expense Claims', path: '/expenses', icon: Receipt, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE] },
+    { name: 'Performance', path: '/performance', icon: TrendingUp, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE] },
     { 
       name: role === UserRole.ADMIN ? 'Payroll Management' : 'Payroll & Documents', 
       path: role === UserRole.ADMIN ? '/payroll' : '/my-payroll', 
