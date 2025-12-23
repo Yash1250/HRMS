@@ -54,6 +54,12 @@ export interface User {
   location?: string;
   bio?: string;
   leaveBalances?: LeaveBalance;
+  status?: 'Active' | 'Archived';
+  canLogin?: boolean;
+  // Offboarding fields
+  exitDate?: string;
+  exitReason?: string;
+  exitComments?: string;
 }
 
 export interface AuthState {

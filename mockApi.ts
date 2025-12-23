@@ -16,7 +16,9 @@ const INITIAL_USERS: User[] = [
     joinDate: '2022-03-15',
     location: 'San Francisco, CA',
     bio: 'Dedicated HR leader with over 10 years of experience in organizational development and employee engagement.',
-    leaveBalances: { earned: 15, sick: 10, casual: 12 }
+    leaveBalances: { earned: 15, sick: 10, casual: 12 },
+    status: 'Active',
+    canLogin: true
   },
   {
     id: 'USR-002',
@@ -32,7 +34,9 @@ const INITIAL_USERS: User[] = [
     joinDate: '2023-01-10',
     location: 'Austin, TX',
     bio: 'Creative designer passionate about crafting intuitive user experiences and modern visual systems.',
-    leaveBalances: { earned: 12, sick: 8, casual: 5 }
+    leaveBalances: { earned: 12, sick: 8, casual: 5 },
+    status: 'Active',
+    canLogin: true
   }
 ];
 
@@ -165,8 +169,8 @@ class MockDatabase {
 
   async login(email: string, pass: string): Promise<{ user: User; token: string }> {
     await new Promise(r => setTimeout(r, 600));
-    const user = this.users.find(u => u.email === email);
-    if (!user) throw new Error('Invalid credentials');
+    const user = this.users.find(u => u.email === email && u.status !== 'Archived');
+    if (!user) throw new Error('Invalid credentials or account archived');
     return { user, token: 'fake-jwt-' + Math.random() };
   }
 
@@ -289,7 +293,7 @@ class MockDatabase {
     const pendingCount = this.leaves.filter(l => l.status === 'PENDING').length;
     
     return {
-      totalEmployees: this.users.length + 480,
+      totalEmployees: this.users.filter(u => u.status !== 'Archived').length + 480,
       activeVacancies: Math.round(12 * modifier),
       avgAttendance: '94.5%',
       monthlyPayroll: `$${Math.round(142500 * modifier).toLocaleString()}`,
@@ -329,11 +333,73 @@ class MockDatabase {
       joinDate: new Date().toISOString().split('T')[0],
       location: 'HQ',
       phone: '+1 (000) 000-0000',
-      leaveBalances: { earned: 12, sick: 10, casual: 10 }
+      leaveBalances: { earned: 12, sick: 10, casual: 10 },
+      status: 'Active',
+      canLogin: true
     };
     this.users.push(newUser);
     this.save();
     return newUser;
+  }
+
+  async onboardCandidate(data: any): Promise<User> {
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // 1. Update Candidate Status
+    const candIdx = this.candidates.findIndex(c => c.id === data.candidateId);
+    if (candIdx !== -1) {
+      this.candidates[candIdx].status = 'Hired';
+      this.candidates[candIdx].lastUpdate = 'Just now';
+    }
+
+    // 2. Create User/Employee
+    const newUser: User = {
+      id: `USR-${Math.floor(Math.random() * 1000)}`,
+      name: data.name,
+      email: data.workEmail, // Login ID
+      role: UserRole.EMPLOYEE,
+      avatar: this.candidates[candIdx]?.avatar || `https://i.pravatar.cc/150?u=${Math.random()}`,
+      designation: data.designation,
+      department: data.department,
+      salary: Number(data.salary),
+      clockedIn: false,
+      joinDate: new Date().toISOString().split('T')[0],
+      location: 'HQ',
+      phone: this.candidates[candIdx]?.phone || '',
+      leaveBalances: { earned: 12, sick: 10, casual: 10 },
+      status: 'Active',
+      canLogin: true
+    };
+    
+    this.users.unshift(newUser);
+    this.save();
+    return newUser;
+  }
+
+  async updateEmployee(id: string, data: Partial<User>): Promise<User> {
+    await new Promise(r => setTimeout(r, 600));
+    const index = this.users.findIndex(u => u.id === id);
+    if (index === -1) throw new Error('Personnel not found');
+    this.users[index] = { ...this.users[index], ...data };
+    this.save();
+    return this.users[index];
+  }
+
+  async archiveEmployee(id: string, offboardingData?: { exitDate: string; exitReason: string; exitComments: string }): Promise<void> {
+    await new Promise(r => setTimeout(r, 800));
+    const user = this.users.find(u => u.id === id);
+    if (user) {
+      user.status = 'Archived';
+      user.canLogin = false;
+      if (offboardingData) {
+        user.exitDate = offboardingData.exitDate;
+        user.exitReason = offboardingData.exitReason;
+        user.exitComments = offboardingData.exitComments;
+      }
+      this.save();
+    } else {
+      throw new Error('Personnel not found');
+    }
   }
 
   async getAttendance(): Promise<AttendanceRecord[]> {

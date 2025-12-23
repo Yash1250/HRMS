@@ -22,6 +22,7 @@ import KanbanColumn from '../components/KanbanColumn';
 import CandidateModal from '../components/CandidateModal';
 import CreateJobModal from '../components/CreateJobModal';
 import AddCandidateModal from '../components/AddCandidateModal';
+import OnboardCandidateModal from '../components/OnboardCandidateModal';
 
 const STAGES = [
   { id: 'Applied', color: 'bg-slate-500' },
@@ -43,6 +44,7 @@ const Recruitment: React.FC = () => {
     defaultStatus: 'Applied'
   });
   const [activeView, setActiveView] = useState<'pipeline' | 'jobs' | 'rejected'>('pipeline');
+  const [onboardingCandidate, setOnboardingCandidate] = useState<Candidate | null>(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -85,7 +87,15 @@ const Recruitment: React.FC = () => {
     const newStatus = destination.droppableId;
     const candidateId = draggableId;
 
-    // Optimistic Update
+    if (newStatus === 'Hired') {
+      const candidate = candidates.find(c => c.id === candidateId);
+      if (candidate) {
+        setOnboardingCandidate(candidate);
+      }
+      return;
+    }
+
+    // Optimistic Update for other stages
     const originalCandidates = [...candidates];
     setCandidates(prev => prev.map(c => 
       c.id === candidateId ? { ...c, status: newStatus as any, lastUpdate: 'Just now' } : c
@@ -111,7 +121,28 @@ const Recruitment: React.FC = () => {
     setAddCandidateState({ isOpen: false, defaultStatus: 'Applied' });
   };
 
+  const handleOnboardSubmit = async (onboardingData: any) => {
+    try {
+      await api.onboardCandidate(onboardingData);
+      setCandidates(prev => prev.map(c => 
+        c.id === onboardingData.candidateId ? { ...c, status: 'Hired' as any, lastUpdate: 'Just now' } : c
+      ));
+      setOnboardingCandidate(null);
+    } catch (err) {
+      alert("Onboarding sync failed. Please contact IT.");
+    }
+  };
+
   const handleUpdateCandidate = async (id: string, data: any) => {
+    // Intercept 'Hired' status update from modal buttons
+    if (data.status === 'Hired') {
+      const candidate = candidates.find(c => c.id === id);
+      if (candidate) {
+        setOnboardingCandidate(candidate);
+      }
+      return;
+    }
+
     const updated = await api.updateCandidate(id, data);
     setCandidates(prev => prev.map(c => c.id === id ? updated : c));
     if (selectedCandidate?.id === id) setSelectedCandidate(updated);
@@ -359,6 +390,14 @@ const Recruitment: React.FC = () => {
           onSubmit={handleAddCandidate}
           jobs={jobs}
           defaultStatus={addCandidateState.defaultStatus}
+        />
+      )}
+
+      {onboardingCandidate && (
+        <OnboardCandidateModal 
+          candidate={onboardingCandidate}
+          onClose={() => setOnboardingCandidate(null)}
+          onConfirm={handleOnboardSubmit}
         />
       )}
     </div>

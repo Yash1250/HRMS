@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Filter, 
@@ -9,7 +9,11 @@ import {
   Mail, 
   Phone, 
   MoreVertical,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  Users,
+  UserX,
+  History
 } from 'lucide-react';
 import { api } from '../mockApi';
 import { User } from '../types';
@@ -18,30 +22,35 @@ import AddMemberModal from '../components/AddMemberModal';
 const EmployeeManagement: React.FC = () => {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<User[]>([]);
-  const [filteredEmployees, setFilteredEmployees] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeView, setActiveView] = useState<'active' | 'archived'>('active');
 
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  useEffect(() => {
-    const results = employees.filter(emp => 
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.designation.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredEmployees(results);
-  }, [searchTerm, employees]);
-
   const fetchEmployees = async () => {
     const data = await api.getEmployees();
     setEmployees(data);
-    setFilteredEmployees(data);
     setLoading(false);
   };
+
+  const filteredEmployees = useMemo(() => {
+    return employees.filter(emp => {
+      const matchesSearch = 
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.designation.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesTab = activeView === 'active' 
+        ? (emp.status !== 'Archived') 
+        : (emp.status === 'Archived');
+
+      return matchesSearch && matchesTab;
+    });
+  }, [searchTerm, employees, activeView]);
 
   const handleAddEmployee = async (data: any) => {
     await api.addEmployee(data);
@@ -67,6 +76,25 @@ const EmployeeManagement: React.FC = () => {
             Hire New Member
           </button>
         </div>
+      </div>
+
+      <div className="flex gap-2 bg-white p-1.5 rounded-[24px] border border-slate-200 shadow-sm w-fit">
+        <button
+          onClick={() => setActiveView('active')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all
+            ${activeView === 'active' ? 'bg-indigo-900 text-white shadow-xl shadow-indigo-100' : 'text-slate-400 hover:bg-slate-50'}`}
+        >
+          <Users size={16} />
+          Active Fleet
+        </button>
+        <button
+          onClick={() => setActiveView('archived')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all
+            ${activeView === 'archived' ? 'bg-indigo-900 text-white shadow-xl shadow-indigo-100' : 'text-slate-400 hover:bg-slate-50'}`}
+        >
+          <History size={16} />
+          Historical Archive
+        </button>
       </div>
 
       <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm flex flex-wrap items-center gap-6">
@@ -101,13 +129,15 @@ const EmployeeManagement: React.FC = () => {
             <div 
               key={emp.id} 
               onClick={() => navigate(`/employees/${emp.id}`)}
-              className="bg-white rounded-[32px] border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group overflow-hidden cursor-pointer"
+              className={`bg-white rounded-[32px] border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group overflow-hidden cursor-pointer
+                ${emp.status === 'Archived' ? 'opacity-75 grayscale-[0.5]' : ''}`}
             >
               <div className="p-8">
                 <div className="flex justify-between items-start mb-6">
                   <div className="relative">
                     <img src={emp.avatar} alt={emp.name} className="w-20 h-20 rounded-3xl object-cover ring-4 ring-slate-50 shadow-md group-hover:ring-teal-100 transition-all" />
-                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white ${emp.clockedIn ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                    <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white 
+                      ${emp.status === 'Archived' ? 'bg-slate-400' : emp.clockedIn ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
                   </div>
                   <button className="p-2 text-slate-300 hover:text-indigo-600 transition-colors">
                     <MoreVertical size={24} />
@@ -115,7 +145,12 @@ const EmployeeManagement: React.FC = () => {
                 </div>
 
                 <div>
-                  <h3 className="font-black text-xl text-slate-900 group-hover:text-indigo-900 transition-colors leading-tight">{emp.name}</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-black text-xl text-slate-900 group-hover:text-indigo-900 transition-colors leading-tight">{emp.name}</h3>
+                    {emp.status === 'Archived' && (
+                      <span className="bg-rose-50 text-rose-600 text-[8px] font-black px-2 py-1 rounded uppercase tracking-widest border border-rose-100">Terminated</span>
+                    )}
+                  </div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mt-2">{emp.designation}</p>
                   
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -124,18 +159,12 @@ const EmployeeManagement: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-8">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); /* handle contact */ }}
-                    className="flex items-center justify-center gap-2 py-4 bg-slate-50 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-900 hover:text-white transition-all shadow-sm"
-                  >
-                    <Mail size={16} /> Contact
-                  </button>
+                <div className="mt-8">
                   <button 
                     onClick={(e) => { e.stopPropagation(); navigate(`/employees/${emp.id}`); }}
-                    className="flex items-center justify-center gap-2 py-4 bg-slate-50 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-teal-600 hover:text-white transition-all shadow-sm"
+                    className="w-full flex items-center justify-center gap-2 py-4 bg-white border-2 border-indigo-900 text-indigo-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-900 hover:text-white transition-all shadow-sm"
                   >
-                    <Phone size={16} /> Brief
+                    <Eye size={16} /> View Full Profile
                   </button>
                 </div>
               </div>
@@ -146,8 +175,9 @@ const EmployeeManagement: React.FC = () => {
             </div>
           ))}
           {filteredEmployees.length === 0 && (
-            <div className="col-span-full py-20 text-center">
-              <p className="text-slate-400 font-bold uppercase tracking-widest">No matching personnel found</p>
+            <div className="col-span-full py-24 text-center">
+              {activeView === 'archived' ? <History size={48} className="mx-auto text-slate-100 mb-4" /> : <Users size={48} className="mx-auto text-slate-100 mb-4" />}
+              <p className="text-slate-400 font-black uppercase tracking-[3px] text-xs">No matching {activeView} personnel records found</p>
             </div>
           )}
         </div>

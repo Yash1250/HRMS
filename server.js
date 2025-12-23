@@ -16,8 +16,8 @@ const SECRET_KEY = 'vatsin-hr-super-secret';
 
 // In-memory persistent arrays
 let users = [
-  { id: '1', email: 'admin@hrms.com', password: 'admin123', role: 'ADMIN', name: 'Alexander Pierce', department: 'HR', designation: 'HR Director' },
-  { id: '2', email: 'emp@hrms.com', password: 'emp123', role: 'EMPLOYEE', name: 'Sarah Jenkins', department: 'Design', designation: 'UI/UX Designer' }
+  { id: '1', email: 'admin@hrms.com', password: 'admin123', role: 'ADMIN', name: 'Alexander Pierce', department: 'HR', designation: 'HR Director', status: 'Active', canLogin: true },
+  { id: '2', email: 'emp@hrms.com', password: 'emp123', role: 'EMPLOYEE', name: 'Sarah Jenkins', department: 'Design', designation: 'UI/UX Designer', status: 'Active', canLogin: true }
 ];
 
 let candidates = [
@@ -100,7 +100,7 @@ const authenticateToken = (req, res, next) => {
 // Routes
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
-  const user = users.find(u => u.email === email && u.password === password);
+  const user = users.find(u => u.email === email && u.password === password && u.status !== 'Archived');
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
   const token = jwt.sign({ id: user.id, role: user.role, name: user.name }, SECRET_KEY, { expiresIn: '8h' });
   res.json({ user, token });
@@ -159,6 +159,109 @@ app.put('/api/recruitment/candidates/:id', authenticateToken, (req, res) => {
     res.json(candidates[index]);
   } else {
     res.status(404).json({ message: 'Candidate not found' });
+  }
+});
+
+// Employee Management API
+app.get('/api/employees', authenticateToken, (req, res) => {
+  res.json(users);
+});
+
+app.post('/api/employees', authenticateToken, (req, res) => {
+  if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER') {
+    return res.sendStatus(403);
+  }
+  const newUser = {
+    id: 'USR-' + Date.now(),
+    password: 'emp123', // Default password
+    status: 'Active',
+    canLogin: true,
+    avatar: `https://i.pravatar.cc/150?u=${Math.random()}`,
+    joinDate: new Date().toISOString().split('T')[0],
+    ...req.body
+  };
+  users.unshift(newUser);
+  res.status(201).json(newUser);
+});
+
+app.post('/api/employees/onboard', authenticateToken, (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.sendStatus(403);
+  }
+  const { candidateId, name, workEmail, designation, department, salary, password } = req.body;
+  
+  // 1. Update Candidate
+  const cand = candidates.find(c => c.id === candidateId);
+  if (cand) {
+    cand.status = 'Hired';
+    cand.lastUpdate = 'Just now';
+  }
+
+  // 2. Create User
+  const newUser = {
+    id: 'USR-' + Date.now(),
+    name,
+    email: workEmail,
+    role: 'EMPLOYEE',
+    password: password || 'emp123',
+    designation,
+    department,
+    salary: Number(salary),
+    status: 'Active',
+    canLogin: true,
+    avatar: cand ? cand.avatar : `https://i.pravatar.cc/150?u=${Math.random()}`,
+    joinDate: new Date().toISOString().split('T')[0],
+  };
+  
+  users.unshift(newUser);
+  res.status(201).json(newUser);
+});
+
+app.put('/api/employees/:id', authenticateToken, (req, res) => {
+  if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER') {
+    return res.sendStatus(403);
+  }
+  const { id } = req.params;
+  const index = users.findIndex(u => u.id === id);
+  if (index !== -1) {
+    users[index] = { ...users[index], ...req.body };
+    res.json(users[index]);
+  } else {
+    res.status(404).json({ message: 'Personnel not found' });
+  }
+});
+
+app.put('/api/employees/:id/offboard', authenticateToken, (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.sendStatus(403);
+  }
+  const { id } = req.params;
+  const { exitDate, exitReason, exitComments } = req.body;
+  const user = users.find(u => u.id === id);
+  if (user) {
+    user.status = 'Archived';
+    user.canLogin = false;
+    user.exitDate = exitDate;
+    user.exitReason = exitReason;
+    user.exitComments = exitComments;
+    res.json(user);
+  } else {
+    res.status(404).json({ message: 'Personnel not found' });
+  }
+});
+
+app.delete('/api/employees/:id', authenticateToken, (req, res) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.sendStatus(403);
+  }
+  const { id } = req.params;
+  const user = users.find(u => u.id === id);
+  if (user) {
+    user.status = 'Archived';
+    user.canLogin = false;
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ message: 'Personnel not found' });
   }
 });
 
