@@ -1,607 +1,431 @@
-
 import { User, UserRole, DashboardStats, AttendanceRecord, HRDocument, CompanySettings, TimesheetEntry, LeaveRequest, AppNotification, ExpenseClaim, ExpenseStatus, PayrollRecord, PerformanceRecord, Goal, Candidate, Job } from './types';
+
+// ==========================================
+// 1. INITIAL DATA (INDIAN CONTEXT)
+// ==========================================
 
 const INITIAL_USERS: User[] = [
   {
     id: 'USR-001',
-    name: 'Alexander Pierce',
-    email: 'admin@hrms.com',
+    name: 'Vikram Malhotra',
+    email: 'admin@vatsin.in',
     role: UserRole.ADMIN,
-    avatar: 'https://i.pravatar.cc/150?u=admin',
-    designation: 'HR Director',
-    department: 'Human Resources',
+    avatar: 'https://i.pravatar.cc/150?u=vikram',
+    designation: 'Managing Director',
+    department: 'Management',
     clockedIn: false,
-    salary: 120000,
-    phone: '+1 (555) 123-4567',
-    joinDate: '2022-03-15',
-    location: 'San Francisco, CA',
-    bio: 'Dedicated HR leader with over 10 years of experience in organizational development and employee engagement.',
+    salary: 3500000,
+    phone: '+91 98123 45678',
+    joinDate: '2020-03-15',
+    location: 'Mumbai, MH',
+    bio: 'Experienced corporate leader driving organizational excellence.',
     leaveBalances: { earned: 15, sick: 10, casual: 12 },
     status: 'Active',
     canLogin: true
   },
   {
     id: 'USR-002',
-    name: 'Sarah Jenkins',
-    email: 'emp@hrms.com',
+    name: 'Ananya Iyer',
+    email: 'emp@vatsin.in',
     role: UserRole.EMPLOYEE,
-    avatar: 'https://i.pravatar.cc/150?u=emp',
-    designation: 'UI/UX Designer',
-    department: 'Design',
+    avatar: 'https://i.pravatar.cc/150?u=ananya',
+    designation: 'Senior React Developer',
+    department: 'Technology',
     clockedIn: false,
-    salary: 85000,
-    phone: '+1 (555) 987-6543',
+    salary: 1800000,
+    phone: '+91 91234 56789',
     joinDate: '2023-01-10',
-    location: 'Austin, TX',
-    bio: 'Creative designer passionate about crafting intuitive user experiences and modern visual systems.',
+    location: 'Bengaluru, KA',
+    bio: 'Frontend architect focused on high-performance web apps.',
     leaveBalances: { earned: 12, sick: 8, casual: 5 },
     status: 'Active',
     canLogin: true
   }
 ];
 
-const INITIAL_CANDIDATES: Candidate[] = [
-  { id: '101', name: 'Alice Freeman', role: 'UX Researcher', status: 'Applied', email: 'alice.f@example.com', phone: '+1 555-0123', experience: '5 Years', score: 4.5, appliedAt: '2024-05-10', avatar: 'https://i.pravatar.cc/150?u=alice', lastUpdate: '2d ago' },
-  { id: '102', name: 'Brad Pitt', role: 'Lead Frontend', status: 'Screening', email: 'brad.p@example.com', phone: '+1 555-0124', experience: '8 Years', score: 4.8, appliedAt: '2024-05-11', avatar: 'https://i.pravatar.cc/150?u=brad', lastUpdate: '1d ago' },
-  { id: '103', name: 'Catherine Zeta', role: 'DevOps Lead', status: 'Interview', email: 'cathy.z@example.com', phone: '+1 555-0125', experience: '6 Years', score: 4.2, appliedAt: '2024-05-12', avatar: 'https://i.pravatar.cc/150?u=cath', lastUpdate: '3h ago' },
-  { id: '104', name: 'David Gandy', role: 'UI Architect', status: 'Offer', email: 'david.g@example.com', phone: '+1 555-0126', experience: '10 Years', score: 4.9, appliedAt: '2024-05-09', avatar: 'https://i.pravatar.cc/150?u=david', lastUpdate: '5h ago' },
-  { id: '105', name: 'Eva Green', role: 'Product Manager', status: 'Applied', email: 'eva.g@example.com', phone: '+1 555-0127', experience: '7 Years', score: 4.6, appliedAt: '2024-05-13', avatar: 'https://i.pravatar.cc/150?u=eva', lastUpdate: 'Just now' },
+const INITIAL_JOBS: Job[] = [
+  { id: 'j1', title: 'Frontend Developer', department: 'Engineering', location: 'Bengaluru / Remote', salary: '₹ 12 - 15 LPA', description: 'Expertise in React, TypeScript and Tailwind.', postedAt: '2024-05-01' },
+  { id: 'j2', title: 'HR Manager', department: 'People Ops', location: 'Mumbai, MH', salary: '₹ 8 - 10 LPA', description: 'Lead talent acquisition.', postedAt: '2024-05-05' },
+  { id: 'j3', title: 'Marketing Intern', department: 'Growth', location: 'Remote', salary: '₹ 3 - 4 LPA', description: 'Help scale organic reach.', postedAt: '2024-05-12' }
 ];
 
-const INITIAL_JOBS: Job[] = [
-  { id: 'j1', title: 'Senior Frontend Engineer', department: 'Engineering', location: 'Remote / SF', salary: '$140k - $180k', description: 'Lead our UI team using React and Tailwind.', postedAt: '2024-05-01' },
-  { id: 'j2', title: 'Product Designer', department: 'Design', location: 'Austin, TX', salary: '$110k - $140k', description: 'Create beautiful user experiences for our HRMS.', postedAt: '2024-05-05' }
+const INITIAL_CANDIDATES: Candidate[] = [
+  { id: 'c1', name: 'Rahul Sharma', role: 'Frontend Developer', jobId: 'j1', status: 'Applied', email: 'rahul.s@outlook.in', phone: '+91 98765 43210', experience: '3 Years', score: 4.2, appliedAt: '2024-05-10', avatar: 'https://i.pravatar.cc/150?u=rahul', lastUpdate: '2d ago' },
+  { id: 'c2', name: 'Priya Patel', role: 'HR Manager', jobId: 'j2', status: 'Screening', email: 'priya.p@gmail.com', phone: '+91 98234 56789', experience: '5 Years', score: 4.8, appliedAt: '2024-05-11', avatar: 'https://i.pravatar.cc/150?u=priya', lastUpdate: '1d ago' },
+  { id: 'c3', name: 'Amit Verma', role: 'Frontend Developer', jobId: 'j1', status: 'Interview', email: 'verma.amit@vatsin.in', phone: '+91 99887 76655', experience: '4 Years', score: 4.5, appliedAt: '2024-05-12', avatar: 'https://i.pravatar.cc/150?u=amit', lastUpdate: '3h ago' },
+  { id: 'c4', name: 'Sneha Reddy', role: 'Marketing Intern', jobId: 'j3', status: 'Hired', email: 'sneha.r@yahoo.com', phone: '+91 91234 56789', experience: 'Fresher', score: 4.9, appliedAt: '2024-05-09', avatar: 'https://i.pravatar.cc/150?u=sneha', lastUpdate: '5h ago' }
+];
+
+const INITIAL_PAYROLL: PayrollRecord[] = [
+  {
+    userId: 'USR-001',
+    year: 2024,
+    payslips: [
+      { month: 'May', year: 2024, netSalary: 285000, status: 'Pending', pdfUrl: '#' },
+      { month: 'April', year: 2024, netSalary: 285000, status: 'Processed', pdfUrl: '#' }
+    ],
+    form16: { isEligible: true, financialYear: '2023-2024', generatedDate: '2024-05-15', pdfUrl: '#' }
+  },
+  {
+    userId: 'USR-002',
+    year: 2024,
+    payslips: [
+      { month: 'May', year: 2024, netSalary: 125000, status: 'Pending', pdfUrl: '#' },
+      { month: 'April', year: 2024, netSalary: 125000, status: 'Processed', pdfUrl: '#' }
+    ],
+    form16: { isEligible: true, financialYear: '2023-2024', generatedDate: '2024-05-15', pdfUrl: '#' }
+  }
 ];
 
 const INITIAL_PERFORMANCE: PerformanceRecord[] = [
   {
-    userId: 'USR-002',
+    userId: 'USR-002', // Ananya
     goals: [
-      { id: '101', title: 'Reduce API Latency by 20%', progress: 80, status: 'In Progress', weight: '30%' },
-      { id: '102', title: 'Complete React Certification', progress: 100, status: 'Completed', weight: '20%' },
-      { id: '103', title: 'Mentor 2 Junior Designers', progress: 50, status: 'In Progress', weight: '25%' },
-      { id: '104', title: 'Implement Design System 2.0', progress: 10, status: 'Not Started', weight: '25%' }
+      { id: '101', title: 'Reduce API Latency', progress: 80, status: 'In Progress', weight: '30%' },
+      { id: '102', title: 'React Certification', progress: 100, status: 'Completed', weight: '20%' }
     ],
     appraisals: {
       cycle: '2024-Q4',
       selfRating: 4,
       managerRating: 4.5,
-      selfComment: 'I delivered the design module ahead of time and improved cross-team communication.',
-      managerComment: 'Excellent work on the UI architecture. Her leadership in the design system update is impressive.',
+      selfComment: 'Delivered ahead of schedule.',
+      managerComment: 'Excellent architectural decisions.',
       finalStatus: 'Eligible for Promotion'
     }
-  },
-  {
-    userId: 'USR-001',
-    goals: [
-      { id: '201', title: 'Complete Workforce Audit', progress: 100, status: 'Completed', weight: '40%' },
-      { id: '202', title: 'Rollout New Performance Module', progress: 95, status: 'In Progress', weight: '60%' }
-    ],
-    appraisals: {
-      cycle: '2024-Q4',
-      selfRating: 5,
-      managerRating: null,
-      selfComment: 'Ensured 100% compliance across all departments.',
-      managerComment: '',
-      finalStatus: 'Pending Review'
-    }
   }
 ];
 
-const INITIAL_PAYROLL: PayrollRecord[] = [
-  {
-    userId: 'USR-002',
-    year: 2025,
-    payslips: [
-      { month: 'January', year: 2025, netSalary: 7083, status: 'Processed', pdfUrl: '#' },
-      { month: 'February', year: 2025, netSalary: 7083, status: 'Processed', pdfUrl: '#' },
-      { month: 'March', year: 2025, netSalary: 7083, status: 'Processed', pdfUrl: '#' }
-    ],
-    form16: {
-      isEligible: true,
-      financialYear: '2024-2025',
-      generatedDate: '2025-05-15',
-      pdfUrl: '#'
-    }
-  }
+const INITIAL_EXPENSES: ExpenseClaim[] = [
+  { id: 'exp1', userId: 'USR-002', userName: 'Ananya Iyer', title: 'Client Lunch', category: 'Food', project: 'Client A', date: '2024-05-10', currency: 'INR', amount: 4500, comment: 'Kickoff meeting.', status: 'PENDING', submittedAt: '2024-05-10T14:30:00Z' }
 ];
 
-const INITIAL_DOCS: Record<string, HRDocument[]> = {
-  "policies": [
-    { "id": "d1", "name": "IT Security Policy.pdf", "category": "policies", "uploadDate": "2024-01-10", "size": "2.4 MB", "type": "application/pdf" },
-    { "id": "d2", "name": "Leave Policy 2025.pdf", "category": "policies", "uploadDate": "2024-02-15", "size": "1.1 MB", "type": "application/pdf" }
-  ],
-  "contracts": [
-    { "id": "d3", "name": "Standard Employment Agreement.docx", "category": "contracts", "uploadDate": "2023-11-20", "size": "500 KB", "type": "application/pdf" }
-  ],
-  "onboarding": [],
-  "reports": []
-};
+const INITIAL_DOCS: HRDocument[] = [
+  { id: 'd1', name: 'POSH Policy 2024.pdf', category: 'policies', uploadDate: '2024-01-10', size: '1.4 MB', type: 'application/pdf' },
+  { id: 'd2', name: 'Leave Policy 2025.pdf', category: 'policies', uploadDate: '2024-02-15', size: '2.1 MB', type: 'application/pdf' },
+  { id: 'd3', name: 'Standard NDA.docx', category: 'contracts', uploadDate: '2023-11-20', size: '450 KB', type: 'docx' }
+];
+
+// ==========================================
+// 2. MOCK CLASS IMPLEMENTATION
+// ==========================================
 
 class MockDatabase {
   private users: User[];
+  private payroll: PayrollRecord[];
   private attendance: AttendanceRecord[];
-  private documents: Record<string, HRDocument[]>;
   private settings: CompanySettings;
-  private timesheets: TimesheetEntry[];
   private leaves: LeaveRequest[];
   private expenses: ExpenseClaim[];
-  private notifications: AppNotification[];
-  private payroll: PayrollRecord[];
-  private performance: PerformanceRecord[];
   private candidates: Candidate[];
   private jobs: Job[];
+  private documents: HRDocument[];
+  private timesheets: TimesheetEntry[];
+  private performance: PerformanceRecord[];
+  private notifications: AppNotification[];
 
   constructor() {
     this.users = JSON.parse(localStorage.getItem('vatsin_users') || JSON.stringify(INITIAL_USERS));
-    this.attendance = JSON.parse(localStorage.getItem('vatsin_attendance') || '[]');
-    this.documents = JSON.parse(localStorage.getItem('vatsin_docs_v2') || JSON.stringify(INITIAL_DOCS));
-    this.timesheets = JSON.parse(localStorage.getItem('vatsin_timesheets') || '[]');
-    this.leaves = JSON.parse(localStorage.getItem('vatsin_leaves') || '[]');
-    this.expenses = JSON.parse(localStorage.getItem('vatsin_expenses') || '[]');
-    this.notifications = JSON.parse(localStorage.getItem('vatsin_notifications') || '[]');
     this.payroll = JSON.parse(localStorage.getItem('vatsin_payroll') || JSON.stringify(INITIAL_PAYROLL));
-    this.performance = JSON.parse(localStorage.getItem('vatsin_performance') || JSON.stringify(INITIAL_PERFORMANCE));
+    this.attendance = JSON.parse(localStorage.getItem('vatsin_attendance') || '[]');
+    this.leaves = JSON.parse(localStorage.getItem('vatsin_leaves') || '[]');
+    this.expenses = JSON.parse(localStorage.getItem('vatsin_expenses') || JSON.stringify(INITIAL_EXPENSES));
     this.candidates = JSON.parse(localStorage.getItem('vatsin_candidates') || JSON.stringify(INITIAL_CANDIDATES));
     this.jobs = JSON.parse(localStorage.getItem('vatsin_jobs') || JSON.stringify(INITIAL_JOBS));
+    this.documents = JSON.parse(localStorage.getItem('vatsin_documents') || JSON.stringify(INITIAL_DOCS));
+    this.performance = JSON.parse(localStorage.getItem('vatsin_performance') || JSON.stringify(INITIAL_PERFORMANCE));
+    this.timesheets = JSON.parse(localStorage.getItem('vatsin_timesheets') || '[]');
+    this.notifications = JSON.parse(localStorage.getItem('vatsin_notifications') || '[]');
     this.settings = JSON.parse(localStorage.getItem('vatsin_settings') || JSON.stringify({
-      companyName: 'Vatsin Solutions Ltd.',
-      timezone: 'UTC-08:00 (PST)',
-      fiscalYearStart: 'January',
+      companyName: 'Vatsin Solutions Pvt. Ltd.',
+      timezone: 'UTC+05:30 (IST)',
+      fiscalYearStart: 'April',
       notificationsEnabled: true
     }));
   }
 
   private save() {
     localStorage.setItem('vatsin_users', JSON.stringify(this.users));
+    localStorage.setItem('vatsin_payroll', JSON.stringify(this.payroll));
     localStorage.setItem('vatsin_attendance', JSON.stringify(this.attendance));
-    localStorage.setItem('vatsin_docs_v2', JSON.stringify(this.documents));
-    localStorage.setItem('vatsin_timesheets', JSON.stringify(this.timesheets));
     localStorage.setItem('vatsin_leaves', JSON.stringify(this.leaves));
     localStorage.setItem('vatsin_expenses', JSON.stringify(this.expenses));
-    localStorage.setItem('vatsin_notifications', JSON.stringify(this.notifications));
-    localStorage.setItem('vatsin_payroll', JSON.stringify(this.payroll));
-    localStorage.setItem('vatsin_performance', JSON.stringify(this.performance));
     localStorage.setItem('vatsin_candidates', JSON.stringify(this.candidates));
     localStorage.setItem('vatsin_jobs', JSON.stringify(this.jobs));
-    localStorage.setItem('vatsin_settings', JSON.stringify(this.settings));
+    localStorage.setItem('vatsin_documents', JSON.stringify(this.documents));
+    localStorage.setItem('vatsin_performance', JSON.stringify(this.performance));
+    localStorage.setItem('vatsin_timesheets', JSON.stringify(this.timesheets));
+    localStorage.setItem('vatsin_notifications', JSON.stringify(this.notifications));
   }
 
+  // --- AUTH ---
   async login(email: string, pass: string): Promise<{ user: User; token: string }> {
     await new Promise(r => setTimeout(r, 600));
     const user = this.users.find(u => u.email === email && u.status !== 'Archived');
-    if (!user) throw new Error('Invalid credentials or account archived');
+    const validPass = user?.role === 'ADMIN' ? 'admin123' : 'emp123';
+    if (!user || pass !== validPass) throw new Error('Invalid credentials');
     return { user, token: 'fake-jwt-' + Math.random() };
   }
 
-  // Recruitment Methods
-  async getCandidates(): Promise<Candidate[]> {
-    await new Promise(r => setTimeout(r, 300));
-    return this.candidates;
-  }
-
-  async getJobs(): Promise<Job[]> {
-    await new Promise(r => setTimeout(r, 300));
-    return this.jobs;
-  }
-
-  async addJob(job: Partial<Job>): Promise<Job> {
-    await new Promise(r => setTimeout(r, 500));
-    const newJob: Job = {
-      id: 'j' + Date.now(),
-      title: job.title || 'Position',
-      department: job.department || 'General',
-      location: job.location || 'Remote',
-      salary: job.salary || 'Negotiable',
-      description: job.description || '',
-      postedAt: new Date().toISOString().split('T')[0]
-    };
-    this.jobs.unshift(newJob);
+  // --- RECRUITMENT ---
+  async getJobs(): Promise<Job[]> { return this.jobs; }
+  async getCandidates(): Promise<Candidate[]> { return this.candidates; }
+  
+  async addJob(jobData: any): Promise<Job> {
+    const job: Job = { ...jobData, id: 'j' + Date.now(), postedAt: new Date().toISOString().split('T')[0] };
+    this.jobs.push(job);
     this.save();
-    return newJob;
+    return job;
   }
 
-  async addCandidate(candidate: Partial<Candidate>): Promise<Candidate> {
-    await new Promise(r => setTimeout(r, 500));
-    const newCandidate: Candidate = {
-      id: 'c' + Date.now(),
-      name: candidate.name || 'Anonymous',
-      role: candidate.role || 'Personnel',
-      status: candidate.status || 'Applied',
-      jobId: candidate.jobId,
-      email: candidate.email || '',
-      phone: candidate.phone || '',
-      experience: 'N/A',
-      score: 0,
-      appliedAt: new Date().toISOString().split('T')[0],
-      avatar: `https://i.pravatar.cc/150?u=${Math.random()}`,
-      lastUpdate: 'Just now'
+  async addCandidate(data: any): Promise<Candidate> {
+    const c: Candidate = { 
+      ...data, id: 'c' + Date.now(), appliedAt: new Date().toISOString().split('T')[0], 
+      score: 4.0, lastUpdate: 'Just now', avatar: `https://i.pravatar.cc/150?u=${Math.random()}` 
     };
-    this.candidates.unshift(newCandidate);
+    this.candidates.push(c);
     this.save();
-    return newCandidate;
+    return c;
   }
 
-  async moveCandidate(candidateId: string, newStatus: string): Promise<Candidate> {
-    await new Promise(r => setTimeout(r, 400));
-    const candidate = this.candidates.find(c => c.id === candidateId);
-    if (candidate) {
-      candidate.status = newStatus as any;
-      candidate.lastUpdate = 'Just now';
+  async moveCandidate(id: string, status: string): Promise<void> {
+    const c = this.candidates.find(x => x.id === id);
+    if (c) { c.status = status as any; c.lastUpdate = 'Just now'; this.save(); }
+  }
+
+  async onboardCandidate(data: any): Promise<void> {
+    const newUser = {
+      id: 'USR-' + Date.now(),
+      name: data.name,
+      email: data.workEmail,
+      role: UserRole.EMPLOYEE,
+      department: data.department,
+      designation: data.designation,
+      salary: Number(data.salary),
+      status: 'Active',
+      canLogin: true,
+      avatar: 'https://i.pravatar.cc/150?u=' + Date.now(),
+      joinDate: new Date().toISOString().split('T')[0],
+      clockedIn: false,
+      leaveBalances: { earned: 12, sick: 10, casual: 10 }
+    } as User;
+    this.users.push(newUser);
+
+    const c = this.candidates.find(x => x.id === data.candidateId);
+    if (c) c.status = 'Hired';
+
+    this.payroll.push({
+      userId: newUser.id,
+      year: 2024,
+      payslips: [{ month: 'May', year: 2024, netSalary: Math.floor(newUser.salary/12), status: 'Pending', pdfUrl: '#' }],
+      form16: { isEligible: false, financialYear: '2023-2024', generatedDate: '', pdfUrl: '' }
+    });
+    this.save();
+  }
+
+  async updateCandidate(id: string, data: any): Promise<Candidate> {
+    const idx = this.candidates.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      this.candidates[idx] = { ...this.candidates[idx], ...data, lastUpdate: 'Just now' };
       this.save();
-      return candidate;
+      return this.candidates[idx];
     }
     throw new Error('Not found');
   }
 
-  async updateCandidate(id: string, data: Partial<Candidate>): Promise<Candidate> {
-    const index = this.candidates.findIndex(c => c.id === id);
-    if (index !== -1) {
-      this.candidates[index] = { ...this.candidates[index], ...data };
-      this.save();
-      return this.candidates[index];
-    }
+  // --- EMPLOYEES ---
+  async getEmployees(): Promise<User[]> { return this.users; }
+  async getEmployeeById(id: string): Promise<User | null> { return this.users.find(u => u.id === id) || null; }
+  
+  async addEmployee(data: any): Promise<User> {
+    const u: User = { 
+      ...data, id: 'USR-'+Date.now(), avatar: 'https://i.pravatar.cc/150?u='+Date.now(), 
+      status: 'Active', canLogin: true, clockedIn: false, joinDate: new Date().toISOString().split('T')[0]
+    };
+    this.users.push(u);
+    this.payroll.push({ userId: u.id, year: 2024, payslips: [{ month: 'May', year: 2024, netSalary: Math.floor(u.salary/12), status: 'Pending', pdfUrl: '#' }], form16: { isEligible: false, financialYear: '2023-2024', generatedDate: '', pdfUrl: '' } });
+    this.save();
+    return u;
+  }
+
+  async updateEmployee(id: string, data: any): Promise<User> {
+    const idx = this.users.findIndex(u => u.id === id);
+    if (idx !== -1) { this.users[idx] = { ...this.users[idx], ...data }; this.save(); return this.users[idx]; }
     throw new Error('Not found');
   }
 
-  // Performance methods
-  async getPerformance(userId: string): Promise<PerformanceRecord | null> {
+  async archiveEmployee(id: string, data: any): Promise<void> {
+    const u = this.users.find(x => x.id === id);
+    if (u) { u.status = 'Archived'; u.canLogin = false; (u as any).exitData = data; this.save(); }
+  }
+
+  // --- PAYROLL (ADVANCED) ---
+  async getAdminPayrollList(): Promise<any[]> {
     await new Promise(r => setTimeout(r, 400));
-    return this.performance.find(p => p.userId === userId) || null;
+    return this.users.filter(u => u.status !== 'Archived').map(u => {
+      const record = this.payroll.find(p => p.userId === u.id);
+      const slip = record?.payslips.find(s => s.month === 'May' && s.year === 2024);
+      return {
+        userId: u.id, name: u.name,
+        amount: slip ? `₹${slip.netSalary.toLocaleString('en-IN')}` : '₹0',
+        status: slip ? slip.status : 'N/A', date: 'May 12, 2024'
+      };
+    });
   }
 
-  async getAllPerformance(): Promise<PerformanceRecord[]> {
-    await new Promise(r => setTimeout(r, 500));
-    return this.performance;
-  }
-
-  async addGoal(userId: string, goal: Partial<Goal>): Promise<Goal> {
-    await new Promise(r => setTimeout(r, 500));
-    const record = this.performance.find(p => p.userId === userId);
-    const newGoal: Goal = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: goal.title || 'Untitled Goal',
-      progress: 0,
-      status: 'Not Started',
-      weight: goal.weight || '10%'
-    };
-    if (record) {
-      record.goals.push(newGoal);
-    } else {
-      this.performance.push({
-        userId,
-        goals: [newGoal],
-        appraisals: { cycle: '2024-Q4', selfRating: 0, managerRating: null, selfComment: '', managerComment: '', finalStatus: 'Pending' }
-      });
-    }
+  async verifyBatchPayroll(): Promise<any> {
+    await new Promise(r => setTimeout(r, 600));
+    let count = 0;
+    this.payroll.forEach(rec => {
+      const slip = rec.payslips.find(s => s.month === 'May' && s.year === 2024);
+      if (slip && slip.status === 'Pending') { slip.status = 'Verified'; count++; }
+    });
     this.save();
-    return newGoal;
+    return { success: true, count };
   }
 
-  async updateAppraisal(userId: string, data: Partial<PerformanceRecord['appraisals']>): Promise<void> {
-    await new Promise(r => setTimeout(r, 500));
-    const record = this.performance.find(p => p.userId === userId);
-    if (record) {
-      record.appraisals = { ...record.appraisals, ...data };
-      this.save();
-    }
-  }
-
-  async getDashboardStats(user: User, period: string = 'Month'): Promise<DashboardStats> {
-    await new Promise(r => setTimeout(r, 300));
-    const modifier = period === 'Today' ? 0.1 : period === 'Week' ? 0.4 : 1;
-    const pendingCount = this.leaves.filter(l => l.status === 'PENDING').length;
-    
-    return {
-      totalEmployees: this.users.filter(u => u.status !== 'Archived').length + 480,
-      activeVacancies: Math.round(12 * modifier),
-      avgAttendance: '94.5%',
-      monthlyPayroll: `$${Math.round(142500 * modifier).toLocaleString()}`,
-      pendingLeaves: pendingCount,
-      myLeaveBalance: user.leaveBalances ? (user.leaveBalances.earned + user.leaveBalances.sick + user.leaveBalances.casual) : 0,
-      myWorkingHours: user.clockedIn ? '6h 45m' : '0h 0m'
-    };
+  async disbursePayroll(): Promise<any> {
+    await new Promise(r => setTimeout(r, 800));
+    let count = 0;
+    let total = 0;
+    this.payroll.forEach(rec => {
+      const slip = rec.payslips.find(s => s.month === 'May' && s.year === 2024);
+      if (slip && slip.status === 'Verified') { slip.status = 'Processed'; count++; total += slip.netSalary; }
+    });
+    this.save();
+    return { success: true, count, total: `₹${total.toLocaleString('en-IN')}` };
   }
 
   async getPayroll(userId: string): Promise<PayrollRecord | null> {
-    await new Promise(r => setTimeout(r, 500));
     return this.payroll.find(p => p.userId === userId) || null;
   }
 
-  async getEmployees(): Promise<User[]> {
-    return this.users;
+  async verifyIndividualPayroll(userId: string): Promise<any> {
+    const rec = this.payroll.find(p => p.userId === userId);
+    const slip = rec?.payslips.find(s => s.month === 'May' && s.year === 2024);
+    if (slip) { slip.status = 'Verified'; this.save(); return { success: true }; }
+    throw new Error('Not found');
   }
 
-  async getEmployeeById(id: string): Promise<User | null> {
-    await new Promise(r => setTimeout(r, 400));
-    const user = this.users.find(u => u.id === id);
-    return user ? { ...user } : null;
+  async getDistributionHistory(): Promise<any[]> {
+    return [
+      { month: 'April', year: 2024, total: 8425000, employees: 422, status: 'Disbursed' },
+      { month: 'March', year: 2024, total: 8250000, employees: 418, status: 'Disbursed' },
+    ];
   }
 
-  async addEmployee(employee: Partial<User>): Promise<User> {
-    await new Promise(r => setTimeout(r, 800));
-    const newUser: User = {
-      id: `USR-${Math.floor(Math.random() * 1000)}`,
-      name: employee.name || 'Unknown',
-      email: employee.email || '',
-      role: employee.role || UserRole.EMPLOYEE,
-      avatar: `https://i.pravatar.cc/150?u=${Math.random()}`,
-      designation: employee.designation || 'Specialist',
-      department: employee.department || 'General',
-      salary: employee.salary || 50000,
-      clockedIn: false,
-      joinDate: new Date().toISOString().split('T')[0],
-      location: 'HQ',
-      phone: '+1 (000) 000-0000',
-      leaveBalances: { earned: 12, sick: 10, casual: 10 },
-      status: 'Active',
-      canLogin: true
-    };
-    this.users.push(newUser);
-    this.save();
-    return newUser;
-  }
-
-  async onboardCandidate(data: any): Promise<User> {
-    await new Promise(r => setTimeout(r, 1000));
-    
-    // 1. Update Candidate Status
-    const candIdx = this.candidates.findIndex(c => c.id === data.candidateId);
-    if (candIdx !== -1) {
-      this.candidates[candIdx].status = 'Hired';
-      this.candidates[candIdx].lastUpdate = 'Just now';
-    }
-
-    // 2. Create User/Employee
-    const newUser: User = {
-      id: `USR-${Math.floor(Math.random() * 1000)}`,
-      name: data.name,
-      email: data.workEmail, // Login ID
-      role: UserRole.EMPLOYEE,
-      avatar: this.candidates[candIdx]?.avatar || `https://i.pravatar.cc/150?u=${Math.random()}`,
-      designation: data.designation,
-      department: data.department,
-      salary: Number(data.salary),
-      clockedIn: false,
-      joinDate: new Date().toISOString().split('T')[0],
-      location: 'HQ',
-      phone: this.candidates[candIdx]?.phone || '',
-      leaveBalances: { earned: 12, sick: 10, casual: 10 },
-      status: 'Active',
-      canLogin: true
-    };
-    
-    this.users.unshift(newUser);
-    this.save();
-    return newUser;
-  }
-
-  async updateEmployee(id: string, data: Partial<User>): Promise<User> {
-    await new Promise(r => setTimeout(r, 600));
-    const index = this.users.findIndex(u => u.id === id);
-    if (index === -1) throw new Error('Personnel not found');
-    this.users[index] = { ...this.users[index], ...data };
-    this.save();
-    return this.users[index];
-  }
-
-  async archiveEmployee(id: string, offboardingData?: { exitDate: string; exitReason: string; exitComments: string }): Promise<void> {
-    await new Promise(r => setTimeout(r, 800));
-    const user = this.users.find(u => u.id === id);
-    if (user) {
-      user.status = 'Archived';
-      user.canLogin = false;
-      if (offboardingData) {
-        user.exitDate = offboardingData.exitDate;
-        user.exitReason = offboardingData.exitReason;
-        user.exitComments = offboardingData.exitComments;
-      }
-      this.save();
-    } else {
-      throw new Error('Personnel not found');
-    }
-  }
-
-  async getAttendance(): Promise<AttendanceRecord[]> {
-    return [...this.attendance].reverse();
-  }
-
+  // --- ATTENDANCE ---
+  async getAttendance(): Promise<AttendanceRecord[]> { return this.attendance; }
+  
   async toggleClock(userId: string): Promise<User> {
-    const user = this.users.find(u => u.id === userId);
-    if (!user) throw new Error('User not found');
-    user.clockedIn = !user.clockedIn;
-    user.clockInTime = user.clockedIn ? new Date().toLocaleTimeString() : undefined;
+    const u = this.users.find(x => x.id === userId);
+    if (!u) throw new Error('User not found');
+    u.clockedIn = !u.clockedIn;
     
-    if (user.clockedIn) {
+    if (u.clockedIn) {
       this.attendance.push({
-        id: Math.random().toString(36).substr(2, 9),
-        empId: userId,
-        empName: user.name,
-        date: new Date().toISOString().split('T')[0],
-        clockIn: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        clockOut: null,
-        status: new Date().getHours() < 10 ? 'ON-TIME' : 'LATE'
-      });
+        id: 'att_' + Date.now(), empId: u.id, empName: u.name, date: new Date().toLocaleDateString('en-GB'),
+        clockIn: new Date().toLocaleTimeString(), clockOut: null, status: 'ON-TIME'
+      } as any);
+    } else {
+      const today = new Date().toLocaleDateString('en-GB');
+      const rec = this.attendance.find(a => a.empId === u.id && a.date === today && !a.clockOut);
+      if (rec) { rec.clockOut = new Date().toLocaleTimeString(); }
     }
     this.save();
-    return { ...user };
+    return { ...u };
   }
 
-  // Expenses
-  async getExpenses(user: User): Promise<ExpenseClaim[]> {
-    await new Promise(r => setTimeout(r, 400));
-    if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
-      return [...this.expenses].reverse();
-    }
-    return this.expenses.filter(e => e.userId === user.id).reverse();
+  // --- EXPENSES ---
+  async getExpenses(u: User): Promise<ExpenseClaim[]> {
+    if (u.role === 'ADMIN') return this.expenses;
+    return this.expenses.filter(e => e.userId === u.id);
   }
-
-  async addExpense(claim: Partial<ExpenseClaim>): Promise<ExpenseClaim> {
-    await new Promise(r => setTimeout(r, 600));
-    const newClaim: ExpenseClaim = {
-      id: 'exp_' + Math.random().toString(36).substr(2, 9),
-      userId: claim.userId || '',
-      userName: claim.userName || '',
-      title: claim.title || 'Expense Claim',
-      category: claim.category || 'Travel',
-      project: claim.project || 'General',
-      date: claim.date || new Date().toISOString().split('T')[0],
-      currency: claim.currency || 'USD',
-      amount: claim.amount || 0,
-      comment: claim.comment || '',
-      status: 'PENDING',
-      submittedAt: new Date().toISOString()
-    };
-    this.expenses.push(newClaim);
-
-    // Notify Admin
-    this.notifications.push({
-      id: 'ntf_' + Math.random().toString(36).substr(2, 9),
-      userId: 'USR-001',
-      message: `New Expense Claim of ${newClaim.currency} ${newClaim.amount} from ${newClaim.userName}`,
-      isRead: false,
-      type: 'EXPENSE_SUBMITTED',
-      timestamp: new Date().toISOString()
-    });
-
-    this.save();
-    return newClaim;
-  }
-
-  async updateExpenseStatus(id: string, status: ExpenseStatus): Promise<void> {
-    await new Promise(r => setTimeout(r, 500));
-    const claim = this.expenses.find(e => e.id === id);
-    if (claim) {
-      claim.status = status;
-
-      // Notify User
-      this.notifications.push({
-        id: 'ntf_' + Math.random().toString(36).substr(2, 9),
-        userId: claim.userId,
-        message: `Your expense claim for ${claim.title} was ${status.toLowerCase()}.`,
-        isRead: false,
-        type: 'EXPENSE_STATUS_CHANGED',
-        timestamp: new Date().toISOString()
-      });
-
-      this.save();
-    }
-  }
-
-  // Leaves & Notifications
-  async getLeaves(user: User): Promise<LeaveRequest[]> {
-    await new Promise(r => setTimeout(r, 400));
-    if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
-      return [...this.leaves].reverse();
-    }
-    return this.leaves.filter(l => l.userId === user.id).reverse();
-  }
-
-  async applyLeave(request: Partial<LeaveRequest>): Promise<LeaveRequest> {
-    await new Promise(r => setTimeout(r, 800));
-    const newLeave: LeaveRequest = {
-      id: 'leaf_' + Math.random().toString(36).substr(2, 9),
-      userId: request.userId || '',
-      userName: request.userName || '',
-      type: request.type || 'Casual Leave',
-      startDate: request.startDate || '',
-      endDate: request.endDate || '',
-      isHalfDay: request.isHalfDay || false,
-      halfDayPeriod: request.halfDayPeriod,
-      reason: request.reason || '',
-      status: 'PENDING',
-      appliedAt: new Date().toISOString()
-    };
-    this.leaves.push(newLeave);
-
-    // Notify Admin
-    this.notifications.push({
-      id: 'ntf_' + Math.random().toString(36).substr(2, 9),
-      userId: 'USR-001', // Target admin
-      message: `New Leave Request from ${newLeave.userName} (${newLeave.type})`,
-      isRead: false,
-      type: 'LEAVE_SUBMITTED',
-      timestamp: new Date().toISOString()
-    });
-
-    this.save();
-    return newLeave;
-  }
-
-  async updateLeaveStatus(id: string, status: 'APPROVED' | 'REJECTED', adminComment: string = ''): Promise<void> {
-    await new Promise(r => setTimeout(r, 600));
-    const leave = this.leaves.find(l => l.id === id);
-    if (leave) {
-      leave.status = status;
-      leave.adminComment = adminComment;
-
-      // Notify User
-      this.notifications.push({
-        id: 'ntf_' + Math.random().toString(36).substr(2, 9),
-        userId: leave.userId,
-        message: `Your leave request for ${leave.startDate} has been ${status.toLowerCase()}.`,
-        isRead: false,
-        type: 'LEAVE_STATUS_CHANGED',
-        timestamp: new Date().toISOString()
-      });
-
-      this.save();
-    }
-  }
-
-  async getNotifications(userId: string): Promise<AppNotification[]> {
-    await new Promise(r => setTimeout(r, 200));
-    return this.notifications.filter(n => n.userId === userId).reverse();
-  }
-
-  async markNotificationsRead(userId: string): Promise<void> {
-    this.notifications.filter(n => n.userId === userId).forEach(n => n.isRead = true);
+  
+  async addExpense(data: any): Promise<void> {
+    this.expenses.push({ ...data, id: 'exp_'+Date.now(), status: 'PENDING', submittedAt: new Date().toISOString() });
     this.save();
   }
 
-  async getDocumentsByCategory(category: string): Promise<HRDocument[]> {
-    await new Promise(r => setTimeout(r, 400));
-    return this.documents[category] || [];
+  async updateExpenseStatus(id: string, status: string): Promise<void> {
+    const ex = this.expenses.find(x => x.id === id);
+    if (ex) { ex.status = status as any; this.save(); }
   }
 
-  async getDocuments(): Promise<HRDocument[]> {
-    // Legacy support: flatten all
-    return Object.values(this.documents).flat();
+  // --- PERFORMANCE ---
+  async getPerformance(uid: string): Promise<PerformanceRecord | null> { return this.performance.find(p => p.userId === uid) || null; }
+  async getAllPerformance(): Promise<PerformanceRecord[]> { return this.performance; }
+  async addGoal(uid: string, goal: any): Promise<void> {
+    const rec = this.performance.find(p => p.userId === uid);
+    const newGoal = { ...goal, id: Date.now(), progress: 0, status: 'Not Started' };
+    if (rec) rec.goals.push(newGoal);
+    else this.performance.push({ userId: uid, goals: [newGoal], appraisals: { cycle: '2024-Q4', selfRating: 0, managerRating: null, selfComment: '', managerComment: '', finalStatus: 'Pending' } });
+    this.save();
+  }
+  async updateAppraisal(uid: string, data: any): Promise<void> {
+    const rec = this.performance.find(p => p.userId === uid);
+    if (rec) { rec.appraisals = { ...rec.appraisals, ...data }; this.save(); }
   }
 
-  async addDocument(doc: Partial<HRDocument>): Promise<HRDocument> {
-    await new Promise(r => setTimeout(r, 1000));
-    const category = doc.category || 'reports';
-    const newDoc: HRDocument = { 
-      id: 'D'+Math.random(), 
-      name: doc.name || '', 
-      category: category, 
-      uploadDate: new Date().toISOString().split('T')[0], 
-      size: doc.size || '1MB', 
-      type: 'application/pdf' 
-    };
-    
-    if (!this.documents[category]) this.documents[category] = [];
-    this.documents[category].unshift(newDoc);
+  // --- DOCUMENTS ---
+  async getDocumentsByCategory(cat: string): Promise<HRDocument[]> { return this.documents.filter(d => d.category === cat); }
+  async addDocument(data: any): Promise<HRDocument> {
+    const d = { ...data, id: 'd'+Date.now(), uploadDate: new Date().toISOString().split('T')[0], type: 'application/pdf' };
+    this.documents.push(d); this.save(); return d;
+  }
+  async deleteDocument(cat: string, id: string): Promise<void> {
+    this.documents = this.documents.filter(d => d.id !== id); this.save();
+  }
+
+  // --- LEAVES & TIMESHEETS ---
+  async getLeaves(u: User): Promise<LeaveRequest[]> { 
+    if (u.role === UserRole.ADMIN || u.role === UserRole.MANAGER) return this.leaves;
+    return this.leaves.filter(l => l.userId === u.id);
+  }
+  async applyLeave(data: any): Promise<void> { 
+    this.leaves.push({ ...data, id: 'l'+Date.now(), status: 'PENDING', appliedAt: new Date().toISOString() }); 
     this.save(); 
-    return newDoc;
+  }
+  async updateLeaveStatus(id: string, s: string, c: string): Promise<void> { 
+    const l = this.leaves.find(x => x.id === id); if(l) { l.status = s as any; l.adminComment = c; this.save(); }
+  }
+  async getTimesheets(u: User): Promise<TimesheetEntry[]> { 
+    if (u.role === UserRole.ADMIN || u.role === UserRole.MANAGER) return this.timesheets;
+    return this.timesheets.filter(t => t.userId === u.id);
+  }
+  async addTimesheet(data: any): Promise<void> { 
+    this.timesheets.push({ ...data, id: 't'+Date.now(), status: 'PENDING' }); 
+    this.save(); 
+  }
+  async updateTimesheetStatus(id: string, status: string): Promise<void> {
+    const ts = this.timesheets.find(x => x.id === id);
+    if (ts) { ts.status = status as any; this.save(); }
   }
 
-  async deleteDocument(category: string, id: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 400));
-    if (this.documents[category]) {
-      this.documents[category] = this.documents[category].filter(d => d.id !== id);
-      this.save();
-    }
+  // --- NOTIFICATIONS ---
+  async getNotifications(uid: string): Promise<AppNotification[]> { 
+    return this.notifications.filter(n => n.userId === uid); 
+  }
+  async markNotificationsRead(uid: string): Promise<void> {
+    this.notifications.forEach(n => { if (n.userId === uid) n.isRead = true; });
+    this.save();
   }
 
-  async getTimesheets(u: User): Promise<TimesheetEntry[]> { return this.timesheets.filter(t => u.role === 'ADMIN' || t.userId === u.id); }
-  async addTimesheet(e: any): Promise<any> { this.timesheets.push({...e, id: 'T'+Math.random()}); this.save(); return e; }
-  async updateTimesheetStatus(id: string, s: any): Promise<void> { 
-    const t = this.timesheets.find(x => x.id === id); if(t) t.status = s; this.save(); 
-  }
+  // --- SETTINGS ---
   async getSettings(): Promise<CompanySettings> { return this.settings; }
-  async updateSettings(s: CompanySettings): Promise<CompanySettings> { this.settings = s; this.save(); return s; }
+  async updateSettings(s: CompanySettings): Promise<void> { this.settings = s; this.save(); }
+
+  // --- DASHBOARD STATS ---
+  async getDashboardStats(user: User, period: string): Promise<DashboardStats> {
+    return {
+      totalEmployees: this.users.filter(u => u.status !== 'Archived').length,
+      activeVacancies: this.jobs.length,
+      avgAttendance: '96%',
+      monthlyPayroll: `₹${(this.users.reduce((acc, u) => acc + (u.salary || 0), 0) / 12).toLocaleString('en-IN')}`,
+      pendingLeaves: this.leaves.filter(l => l.status === 'PENDING').length,
+      myLeaveBalance: user.leaveBalances?.earned || 0,
+      myWorkingHours: user.clockedIn ? 'Ongoing' : '0h'
+    };
+  }
 }
 
 export const api = new MockDatabase();

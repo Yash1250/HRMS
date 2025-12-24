@@ -236,15 +236,15 @@ const EmployeeProfile: React.FC = () => {
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <DollarSign size={14} /> Annual Package
+                  <span className="text-sm font-black">₹</span> Annual Package
                 </p>
-                <p className="text-lg font-black text-slate-900">${employee.salary?.toLocaleString() || '0'}</p>
+                <p className="text-lg font-black text-slate-900">₹{employee.salary?.toLocaleString('en-IN') || '0'}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                   <Clock size={14} /> Current Shift
                 </p>
-                <p className="text-lg font-black text-slate-900">09:00 - 18:00</p>
+                <p className="text-lg font-black text-slate-900">09:30 - 18:30 IST</p>
               </div>
             </div>
           </div>
@@ -260,7 +260,7 @@ const EmployeeProfile: React.FC = () => {
              <div className="p-8 space-y-8 relative">
                 <div className="absolute left-[47px] top-10 bottom-10 w-0.5 bg-slate-100"></div>
                 {[
-                  { date: 'Jun 12, 2024', event: 'Employee Shift Finished', desc: 'Successfully completed standard 8-hour work session.', icon: Clock, color: 'text-emerald-500 bg-emerald-50' },
+                  { date: 'Jun 12, 2024', event: 'Employee Shift Finished', desc: 'Successfully completed standard work session.', icon: Clock, color: 'text-emerald-500 bg-emerald-50' },
                   { date: 'Jun 10, 2024', event: 'Payroll Disbursed', desc: 'Monthly compensation package processed and transmitted.', icon: DollarSign, color: 'text-indigo-500 bg-indigo-50' },
                   { date: 'May 25, 2024', event: 'Annual Review Conducted', desc: 'Performance rated as "Exceeds Expectations" for Q2.', icon: Shield, color: 'text-amber-500 bg-amber-50' },
                 ].map((item, i) => (

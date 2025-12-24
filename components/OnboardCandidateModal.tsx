@@ -13,10 +13,10 @@ const OnboardCandidateModal: React.FC<OnboardCandidateModalProps> = ({ candidate
   const [formData, setFormData] = useState({
     name: candidate.name,
     personalEmail: candidate.email,
-    workEmail: `${candidate.name.toLowerCase().replace(/\s+/g, '.')}@vatsinhr.com`,
+    workEmail: `${candidate.name.toLowerCase().replace(/\s+/g, '.')}@vatsin.in`,
     department: 'Engineering',
     designation: candidate.role,
-    salary: '85000'
+    salary: '1200000'
   });
   const [loading, setLoading] = useState(false);
 
@@ -83,7 +83,7 @@ const OnboardCandidateModal: React.FC<OnboardCandidateModalProps> = ({ candidate
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Official Work Email (Login ID)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Work Email (Login ID)</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input 
@@ -105,6 +105,7 @@ const OnboardCandidateModal: React.FC<OnboardCandidateModalProps> = ({ candidate
                   onChange={e => setFormData({...formData, department: e.target.value})}
                 >
                   <option>Engineering</option>
+                  <option>Technology</option>
                   <option>Design</option>
                   <option>Marketing</option>
                   <option>Human Resources</option>
@@ -112,7 +113,7 @@ const OnboardCandidateModal: React.FC<OnboardCandidateModalProps> = ({ candidate
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Annual Package ($)</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Annual CTC (₹)</label>
                 <input 
                   required
                   type="number"

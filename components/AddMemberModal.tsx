@@ -57,7 +57,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onAdd 
                 <input 
                   required
                   className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm"
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. Rahul Sharma"
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
                 />
@@ -70,7 +70,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onAdd 
                   required
                   type="email"
                   className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm"
-                  placeholder="j.doe@nexus.com"
+                  placeholder="r.sharma@vatsin.in"
                   value={formData.email}
                   onChange={e => setFormData({...formData, email: e.target.value})}
                 />
@@ -112,18 +112,18 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onAdd 
               <input 
                 required
                 className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm"
-                placeholder="e.g. Senior Architect"
+                placeholder="e.g. Tech Lead"
                 value={formData.designation}
                 onChange={e => setFormData({...formData, designation: e.target.value})}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Annual Salary ($)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Annual CTC (₹)</label>
               <input 
                 required
                 type="number"
-                className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm"
-                placeholder="85000"
+                className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-bold"
+                placeholder="1200000"
                 value={formData.salary}
                 onChange={e => setFormData({...formData, salary: e.target.value})}
               />

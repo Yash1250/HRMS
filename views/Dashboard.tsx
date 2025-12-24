@@ -21,12 +21,12 @@ import { api } from '../mockApi';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const payrollData = [
-  { name: 'Jan', amount: 45000 },
-  { name: 'Feb', amount: 48000 },
-  { name: 'Mar', amount: 47000 },
-  { name: 'Apr', amount: 52000 },
-  { name: 'May', amount: 55000 },
-  { name: 'Jun', amount: 59000 },
+  { name: 'Jan', amount: 645000 },
+  { name: 'Feb', amount: 680000 },
+  { name: 'Mar', amount: 670000 },
+  { name: 'Apr', amount: 720000 },
+  { name: 'May', amount: 750000 },
+  { name: 'Jun', amount: 790000 },
 ];
 
 const Dashboard: React.FC<{ user: User }> = ({ user }) => {
@@ -154,7 +154,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
             />
             <StatCard 
               title="Projected Pay" 
-              value="$4,250.00" 
+              value="₹72,450.00" 
               icon={<CreditCard />} 
               color="bg-indigo-500" 
               onClick={() => navigate('/payroll')}
@@ -198,6 +198,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10, fontWeight: 'bold'}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10, fontWeight: 'bold'}} />
                 <Tooltip 
+                  formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Amount']}
                   contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' }}
                 />
                 <Area type="monotone" dataKey="amount" stroke="#1A237E" strokeWidth={5} fillOpacity={1} fill="url(#chartGradient)" />
@@ -245,7 +246,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
             
             <div className="mt-6 flex items-center gap-2 text-[10px] font-bold text-slate-400 justify-center uppercase tracking-widest relative z-10">
               <MapPin size={12} />
-              HQ Office • Secure Channel
+              India HQ • Secure Channel
             </div>
           </div>
 
@@ -253,10 +254,10 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
             <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
             <h4 className="font-black mb-6 relative z-10 uppercase tracking-widest text-xs opacity-70">Corporate Calendar</h4>
             <div className="flex items-center gap-5 relative z-10">
-              <div className="w-16 h-16 bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center font-black text-3xl border border-white/20">25</div>
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center font-black text-3xl border border-white/20">15</div>
               <div>
-                <p className="font-black text-sm uppercase tracking-tight">Global Holiday</p>
-                <p className="text-xs text-indigo-200 font-bold">Monday, July 4, 2024</p>
+                <p className="font-black text-sm uppercase tracking-tight">Independence Day</p>
+                <p className="text-xs text-indigo-200 font-bold">Thursday, August 15, 2024</p>
               </div>
             </div>
           </div>

@@ -50,7 +50,7 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ onClose, onSubmit }) =>
             <input 
               required
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold"
-              placeholder="e.g. Lead UI Designer"
+              placeholder="e.g. Senior Software Engineer"
               value={formData.title}
               onChange={e => setFormData({...formData, title: e.target.value})}
             />
@@ -65,17 +65,19 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ onClose, onSubmit }) =>
                 onChange={e => setFormData({...formData, department: e.target.value})}
               >
                 <option>Engineering</option>
+                <option>Technology</option>
                 <option>Design</option>
                 <option>Marketing</option>
                 <option>Sales</option>
+                <option>Human Resources</option>
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Compensation Range</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Compensation Range (₹)</label>
               <input 
                 required
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold"
-                placeholder="$100k - $150k"
+                placeholder="e.g. ₹15,00,000 - ₹20,00,000"
                 value={formData.salary}
                 onChange={e => setFormData({...formData, salary: e.target.value})}
               />

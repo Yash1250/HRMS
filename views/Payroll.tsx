@@ -14,40 +14,62 @@ import {
   Clock,
   Loader2,
   Users,
-  LayoutDashboard
+  LayoutDashboard,
+  ArrowLeft,
+  X,
+  History
 } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import { User, UserRole, PayrollRecord, Payslip } from '../types';
 import { api } from '../mockApi';
+import PayrollVerificationModal from '../components/PayrollVerificationModal';
 
 const adminPayrollData = [
-  { month: 'Jan', amount: 120000 },
-  { month: 'Feb', amount: 125000 },
-  { month: 'Mar', amount: 122000 },
-  { month: 'Apr', amount: 128000 },
-  { month: 'May', amount: 135000 },
+  { month: 'Jan', amount: 8200000 },
+  { month: 'Feb', amount: 8250000 },
+  { month: 'Mar', amount: 8220000 },
+  { month: 'Apr', amount: 8280000 },
+  { month: 'May', amount: 8350000 },
 ];
 
 const Payroll: React.FC<{ user: User }> = ({ user }) => {
   const isPrivileged = user.role === UserRole.ADMIN || user.role === UserRole.MANAGER;
   
-  // State to toggle between Admin Dashboard and Personal Documents for Admins/Managers
   const [viewMode, setViewMode] = useState<'admin' | 'personal'>(isPrivileged ? 'admin' : 'personal');
   const [activeTab, setActiveTab] = useState<'payslips' | 'tax'>('payslips');
   const [payrollRecord, setPayrollRecord] = useState<PayrollRecord | null>(null);
+  const [adminList, setAdminList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState(2025);
+  const [selectedYear, setSelectedYear] = useState(2024);
+
+  // Interaction States
+  const [verificationMode, setVerificationMode] = useState<'single' | 'batch' | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [distributionHistory, setDistributionHistory] = useState<any[]>([]);
+
+  const fetchInitialData = async () => {
+    setLoading(true);
+    try {
+      const personal = await api.getPayroll(user.id);
+      setPayrollRecord(personal);
+      if (isPrivileged) {
+        const list = await api.getAdminPayrollList();
+        setAdminList(list);
+        api.getDistributionHistory().then(setDistributionHistory);
+      }
+    } catch (err) {
+      console.error("Failed to sync payroll core:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Fetch personal payroll record for everyone (admins are employees too)
-    api.getPayroll(user.id).then(record => {
-      setPayrollRecord(record);
-      setLoading(false);
-    });
-  }, [user.id]);
+    fetchInitialData();
+  }, [user.id, isPrivileged]);
 
   const handleDownload = (filename: string) => {
-    // Simulate a PDF download experience
     const blob = new Blob(["Simulated VatsinHR Document Content"], { type: "application/pdf" });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -59,7 +81,52 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
     window.URL.revokeObjectURL(url);
   };
 
-  if (loading) {
+  const handleVerifyEntry = (emp: any) => {
+    setSelectedEmployee(emp);
+    setVerificationMode('single');
+  };
+
+  const handleVerifyBatchStart = () => {
+    setSelectedEmployee(null);
+    setVerificationMode('batch');
+  };
+
+  const executeVerificationApi = async (userId?: string) => {
+    if (userId) {
+      return await api.verifyIndividualPayroll(userId);
+    } else {
+      return await api.verifyBatchPayroll();
+    }
+  };
+
+  const handleDisburse = async () => {
+    const verifiedEntries = adminList.filter(e => e.status === 'Verified');
+    if (verifiedEntries.length === 0) {
+      alert("COMPLIANCE BLOCK: No verified entries found.");
+      return;
+    }
+
+    const confirm = window.confirm(`Ready to disburse ${verifiedEntries.length} salaries for May 2024? Total amount estimated at ₹84.25 Lacs.`);
+    if (confirm) {
+      setLoading(true);
+      try {
+        const res = await api.disbursePayroll();
+        alert(`SUCCESS: ${res.count} salaries disbursed successfully. Total volume: ${res.total}`);
+        await fetchInitialData();
+      } catch (err) {
+        alert("Disbursement Unit Error: System unable to finalize transactions.");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Logic: Enable disbursement only if there are Verified entries and 0 Pending entries
+  const pendingCount = adminList.filter(e => e.status === 'Pending').length;
+  const verifiedCount = adminList.filter(e => e.status === 'Verified').length;
+  const canDisburse = verifiedCount > 0 && pendingCount === 0;
+
+  if (loading && !payrollRecord && adminList.length === 0) {
     return (
       <div className="h-full w-full flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
@@ -68,7 +135,7 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto">
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto pb-20">
       {/* View Switcher for Admins/Managers */}
       {isPrivileged && (
         <div className="flex justify-center">
@@ -99,12 +166,17 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight">Payroll Management</h1>
-              <p className="text-slate-500 text-sm mt-1">Global administrative overview of salary disbursements and taxes.</p>
+              <p className="text-slate-500 text-sm mt-1">Audit and disburse compensation across the organizational hierarchy.</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100">
-                <DollarSign size={18} />
-                Disburse Salary
+              <button 
+                onClick={handleDisburse}
+                disabled={!canDisburse}
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl
+                  ${!canDisburse ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-100'}`}
+              >
+                <span className="text-lg leading-none">₹</span>
+                Disburse Salaries
               </button>
             </div>
           </div>
@@ -118,18 +190,15 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
               <div className="space-y-8">
                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Enterprise Monthly Commitment</p>
-                  <p className="text-3xl font-black text-indigo-900 mt-1">$142,500.00</p>
+                  <p className="text-3xl font-black text-indigo-900 mt-1">₹84,25,000.00</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tax Liability</p>
-                    <p className="text-lg font-black text-slate-800">$18,420</p>
-                  </div>
-                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Retirement Fund</p>
-                    <p className="text-lg font-black text-slate-800">$22,100</p>
-                  </div>
-                </div>
+                <button 
+                  onClick={handleVerifyBatchStart}
+                  disabled={pendingCount === 0}
+                  className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-all border border-indigo-100 disabled:opacity-50"
+                >
+                  {pendingCount === 0 ? 'Batch Verified' : 'Verify All Pending'}
+                </button>
                 <div className="h-32 w-full pt-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={adminPayrollData}>
@@ -144,37 +213,48 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
 
             <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm lg:col-span-2 overflow-hidden">
               <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[2px]">Approval Pipeline</h3>
+                <div className="flex items-center gap-3">
+                  <History className="text-indigo-600" size={20} />
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-[2px]">Approval Pipeline</h3>
+                </div>
                 <span className="bg-amber-100 text-amber-700 text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider border border-amber-200 shadow-sm">
-                  4 SUBMISSIONS
+                  {pendingCount} AWAITING AUDIT
                 </span>
               </div>
               <div className="divide-y divide-slate-50">
-                {[
-                  { name: 'Marcus Aurelius', id: '#PY-2045', date: 'May 12, 2024', amount: '$6,800.00', status: 'Pending' },
-                  { name: 'Julia Roberts', id: '#PY-2046', date: 'May 12, 2024', amount: '$5,200.00', status: 'Review' },
-                  { name: 'Chris Evans', id: '#PY-2047', date: 'May 11, 2024', amount: '$4,500.00', status: 'Pending' },
-                  { name: 'Natasha Romanoff', id: '#PY-2048', date: 'May 11, 2024', amount: '$8,200.00', status: 'Pending' },
-                ].map((p, i) => (
-                  <div key={i} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors group cursor-pointer">
+                {adminList.map((p, i) => (
+                  <div key={i} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-400 group-hover:bg-indigo-900 group-hover:text-white transition-all">
-                        <FileText size={22} />
+                      <div className={`w-12 h-12 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center transition-all
+                        ${p.status === 'Verified' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 
+                          p.status === 'Processed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-white text-slate-400 group-hover:bg-indigo-900 group-hover:text-white'}`}>
+                        {p.status === 'Verified' ? <CheckCircle2 size={22} /> : 
+                         p.status === 'Processed' ? <CreditCard size={22} /> : <FileText size={22} />}
                       </div>
                       <div>
                         <p className="text-sm font-black text-slate-900">{p.name}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.id} • {p.date}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.userId} • {p.date}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-black text-slate-900">{p.amount}</p>
-                      <button className="text-[10px] font-black text-teal-600 uppercase tracking-widest hover:underline">Verify Entry</button>
+                      <button 
+                        onClick={() => handleVerifyEntry(p)}
+                        className={`text-[10px] font-black uppercase tracking-widest hover:underline
+                          ${p.status === 'Verified' ? 'text-indigo-600' : 
+                            p.status === 'Processed' ? 'text-emerald-600 pointer-events-none' : 'text-teal-600'}`}>
+                        {p.status === 'Verified' ? 'Audit Record' : 
+                         p.status === 'Processed' ? 'Paid' : 'Verify Entry'}
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="p-4 bg-slate-50/50 text-center border-t border-slate-50">
-                <button className="text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2 w-full uppercase tracking-[2px]">
+                <button 
+                  onClick={() => setIsHistoryOpen(true)}
+                  className="text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2 w-full uppercase tracking-[2px]"
+                >
                   Master Disbursement History <ChevronRight size={14} />
                 </button>
               </div>
@@ -206,7 +286,7 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
                 ${activeTab === 'tax' ? 'bg-indigo-900 text-white shadow-xl shadow-indigo-100' : 'text-slate-400 hover:bg-slate-50'}`}
             >
               <ShieldCheck size={18} />
-              Tax Documents
+              Tax Documents (Form 16)
             </button>
           </div>
 
@@ -219,7 +299,7 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Financial Period</p>
-                    <h3 className="text-lg font-black text-slate-900">Yearly Ledger 2025</h3>
+                    <h3 className="text-lg font-black text-slate-900">Yearly Ledger 2024</h3>
                   </div>
                 </div>
                 <select 
@@ -227,8 +307,8 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
                   className="bg-slate-50 border border-slate-200 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/10 cursor-pointer"
                 >
-                  <option value={2025}>2025</option>
                   <option value={2024}>2024</option>
+                  <option value={2023}>2023</option>
                 </select>
               </div>
 
@@ -250,7 +330,7 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
 
                       <div className="space-y-1 mb-8">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Net Compensation</p>
-                        <p className="text-2xl font-black text-slate-900">${slip.netSalary.toLocaleString()}</p>
+                        <p className="text-2xl font-black text-slate-900">₹{slip.netSalary.toLocaleString('en-IN')}</p>
                       </div>
 
                       <button 
@@ -263,12 +343,6 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
                     </div>
                   </div>
                 ))}
-                {(!payrollRecord || payrollRecord.payslips.length === 0) && (
-                  <div className="col-span-full py-20 text-center bg-white rounded-[40px] border border-slate-200 border-dashed">
-                    <CreditCard size={48} className="mx-auto text-slate-200 mb-4" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[2px]">No payslips generated for this period</p>
-                  </div>
-                )}
               </div>
             </div>
           ) : (
@@ -287,13 +361,13 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
                     </div>
                     
                     <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
-                      Certificate under section 203 of the Income-tax Act, 1961 for tax deducted at source on salary.
+                      Certificate under section 203 of the Income-tax Act, 1961 for tax deducted at source on salary. Essential for Indian IT filing.
                     </p>
 
                     <div className="space-y-4 mb-10">
                       <div className="flex justify-between items-center py-3 border-b border-slate-50">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Financial Year</span>
-                        <span className="text-xs font-black text-slate-900">{payrollRecord?.form16.financialYear || '2024-2025'}</span>
+                        <span className="text-xs font-black text-slate-900">{payrollRecord?.form16.financialYear || '2023-2024'}</span>
                       </div>
                       <div className="flex justify-between items-center py-3 border-b border-slate-50">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Eligibility Status</span>
@@ -303,12 +377,6 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
                           <span className="text-[9px] font-black bg-slate-50 text-slate-400 px-2.5 py-1 rounded-lg uppercase tracking-wider">Not Generated</span>
                         )}
                       </div>
-                      {payrollRecord?.form16.isEligible && (
-                        <div className="flex justify-between items-center py-3">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Generated On</span>
-                          <span className="text-xs font-bold text-slate-500">{payrollRecord?.form16.generatedDate}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -327,24 +395,54 @@ const Payroll: React.FC<{ user: User }> = ({ user }) => {
                     </div>
                   )}
                 </div>
-
-                <div className="bg-indigo-900 p-10 rounded-[40px] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden flex flex-col justify-center">
-                   <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
-                   <div className="relative z-10">
-                     <Clock size={40} className="mb-6 opacity-60" />
-                     <h4 className="text-2xl font-black mb-4">Regulatory Notice</h4>
-                     <p className="text-sm text-indigo-100/70 leading-relaxed font-medium mb-8">
-                       Form 16 is typically generated after the completion of the financial year (March 31st) and the filing of the 4th quarter TDS return. 
-                       Expected availability for current year: June 15th, 2025.
-                     </p>
-                     <button className="text-[10px] font-black uppercase tracking-[3px] py-3 px-6 rounded-2xl border border-white/20 hover:bg-white/10 transition-all">
-                       View Tax Guidelines
-                     </button>
-                   </div>
-                </div>
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* VERIFICATION MODAL */}
+      {verificationMode && (
+        <PayrollVerificationModal 
+          month="May" 
+          mode={verificationMode}
+          selectedEmployee={selectedEmployee}
+          batchList={adminList}
+          onClose={() => setVerificationMode(null)} 
+          onVerify={executeVerificationApi} 
+          onSuccess={fetchInitialData}
+        />
+      )}
+
+      {/* HISTORY MODAL */}
+      {isHistoryOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md" onClick={() => setIsHistoryOpen(false)}></div>
+          <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+               <div className="flex items-center gap-4">
+                 <History size={24} className="text-indigo-600" />
+                 <h3 className="text-xl font-black text-slate-900">Distribution Ledger</h3>
+               </div>
+               <button onClick={() => setIsHistoryOpen(false)} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-all"><X size={20}/></button>
+            </div>
+            <div className="p-8 max-h-[60vh] overflow-y-auto">
+               <div className="space-y-4">
+                  {distributionHistory.map((h, i) => (
+                    <div key={i} className="flex items-center justify-between p-5 bg-slate-50 rounded-3xl border border-slate-100">
+                       <div>
+                          <p className="text-sm font-black text-slate-900">{h.month} {h.year}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{h.employees} Active Personnel</p>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-sm font-black text-indigo-900">₹{h.total.toLocaleString('en-IN')}</p>
+                          <span className="text-[8px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded uppercase">{h.status}</span>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

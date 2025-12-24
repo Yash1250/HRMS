@@ -144,11 +144,12 @@ export interface ExpenseClaim {
   submittedAt: string;
 }
 
+// Added 'Verified' to status to allow intermediate payroll verification state
 export interface Payslip {
   month: string;
   year: number;
   netSalary: number;
-  status: 'Processed' | 'Pending';
+  status: 'Processed' | 'Pending' | 'Verified';
   pdfUrl: string;
 }
 

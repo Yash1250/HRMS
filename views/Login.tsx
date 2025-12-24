@@ -9,7 +9,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [email, setEmail] = useState('admin@hrms.com');
+  const [email, setEmail] = useState('admin@vatsin.in');
   const [password, setPassword] = useState('admin123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,11 +45,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         <div className="relative z-10">
           <h1 className="text-5xl font-black leading-tight mb-6">
-            The Future of <br />
-            <span className="text-teal-400">Enterprise HR</span>
+            Future of Indian <br />
+            <span className="text-teal-400">Workforce Tech</span>
           </h1>
           <p className="text-indigo-100/70 max-w-md leading-relaxed">
-            Manage your global workforce with precision. From automated payroll to AI-driven recruitment, VatsinHR is the central nervous system for your organization.
+            Manage your global workforce with precision. From automated payroll and Form 16s to AI-driven recruitment, VatsinHR is the central nervous system for your organization.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-slate-700"
-                    placeholder="name@company.com"
+                    placeholder="name@vatsin.in"
                   />
                 </div>
               </div>
@@ -131,8 +131,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                <div className="p-4 bg-teal-50/50 border border-teal-100 rounded-2xl">
                  <p className="text-xs font-bold text-teal-800 uppercase mb-2">Demo Credentials</p>
                  <div className="space-y-1">
-                   <p className="text-[10px] text-teal-600 flex justify-between"><span>Admin:</span> <b>admin@hrms.com / admin123</b></p>
-                   <p className="text-[10px] text-teal-600 flex justify-between"><span>Employee:</span> <b>emp@hrms.com / emp123</b></p>
+                   <p className="text-[10px] text-teal-600 flex justify-between"><span>Admin:</span> <b>admin@vatsin.in / admin123</b></p>
+                   <p className="text-[10px] text-teal-600 flex justify-between"><span>Employee:</span> <b>emp@vatsin.in / emp123</b></p>
                  </div>
                </div>
             </div>

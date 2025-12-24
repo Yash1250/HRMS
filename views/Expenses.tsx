@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 const CATEGORIES: ExpenseCategory[] = ['Travel', 'Food', 'Accommodation', 'Office Supplies'];
-const CURRENCIES = ['USD', 'INR', 'EUR', 'GBP'];
+const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP'];
 const PROJECTS = ['Client A', 'Internal', 'Sales Trip', 'Technical Workshop'];
 
 const Expenses: React.FC<{ user: User }> = ({ user }) => {
@@ -158,7 +158,7 @@ const Expenses: React.FC<{ user: User }> = ({ user }) => {
                   </td>
                   <td className="px-8 py-5 text-sm font-medium text-slate-700">{claim.title}</td>
                   <td className="px-8 py-5 text-sm font-black text-slate-900">
-                    {claim.currency} {claim.amount.toLocaleString()}
+                    {claim.currency === 'INR' ? '₹' : claim.currency} {claim.amount.toLocaleString('en-IN')}
                   </td>
                   {isAdmin && (
                     <td className="px-8 py-5 text-right">
@@ -213,13 +213,13 @@ const Expenses: React.FC<{ user: User }> = ({ user }) => {
                     <Upload size={32} />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-white">Upload Receipts</p>
+                    <p className="text-sm font-bold text-white">Upload GST Invoice</p>
                     <p className="text-[10px] text-white/30 font-medium mt-1 uppercase tracking-widest">PDF, JPG, PNG up to 10MB</p>
                   </div>
                 </div>
                 <div className="mt-10 p-4 bg-white/5 rounded-2xl border border-white/5 text-left w-full max-w-[280px]">
                    <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">Audit Policy</p>
-                   <p className="text-[10px] text-white/50 leading-relaxed font-medium">All reimbursements require clear image proof for tax compliance and enterprise auditing.</p>
+                   <p className="text-[10px] text-white/50 leading-relaxed font-medium">All reimbursements require valid GST invoices for organizational auditing.</p>
                 </div>
               </div>
 
@@ -263,7 +263,7 @@ const Expenses: React.FC<{ user: User }> = ({ user }) => {
                         type="text"
                         required
                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-teal-500/10 text-sm font-bold text-slate-900"
-                        placeholder="e.g. Flight to SF"
+                        placeholder="e.g. Travel to Bengaluru"
                         value={formData.title}
                         onChange={e => setFormData({...formData, title: e.target.value})}
                       />
@@ -318,10 +318,7 @@ const Expenses: React.FC<{ user: User }> = ({ user }) => {
                   <div className="pt-8 border-t border-slate-50 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <button type="button" className="px-6 py-3 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all">
-                        Save Expense
-                      </button>
-                      <button type="button" className="px-6 py-3 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all">
-                        Save and Add Another
+                        Save Draft
                       </button>
                     </div>
                     <button 

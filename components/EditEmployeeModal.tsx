@@ -112,9 +112,11 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
                 onChange={e => setFormData({...formData, department: e.target.value})}
               >
                 <option>Engineering</option>
+                <option>Technology</option>
                 <option>Design</option>
                 <option>Marketing</option>
                 <option>Human Resources</option>
+                <option>Management</option>
               </select>
             </div>
           </div>
@@ -131,12 +133,12 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Annual Remuneration ($)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Annual CTC (₹)</label>
               <input 
                 required
                 type="number"
                 className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-bold"
-                placeholder="Salary"
+                placeholder="Annual Package"
                 value={formData.salary}
                 onChange={e => setFormData({...formData, salary: e.target.value})}
               />
