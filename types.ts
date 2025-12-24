@@ -167,6 +167,16 @@ export interface PayrollRecord {
   form16: TaxDocument;
 }
 
+// Added HRDocument interface for documentation module
+export interface HRDocument {
+  id: string;
+  name: string;
+  category: string;
+  uploadDate: string;
+  size: string;
+  type: string;
+}
+
 export interface AppNotification {
   id: string;
   userId: string;
@@ -193,16 +203,8 @@ export interface AttendanceRecord {
   date: string;
   clockIn: string;
   clockOut: string | null;
-  status: 'ON-TIME' | 'LATE' | 'ON_LEAVE' | 'ABSENT';
-}
-
-export interface HRDocument {
-  id: string;
-  name: string;
-  category: string; // Used as folder identifier
-  uploadDate: string;
-  size: string;
-  type: string;
+  status: 'Present' | 'Half Day' | 'LATE' | 'ON_LEAVE' | 'ABSENT' | 'ON-TIME';
+  production: string;
 }
 
 export interface CompanySettings {

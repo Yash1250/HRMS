@@ -1,3 +1,4 @@
+
 import { User, UserRole, DashboardStats, AttendanceRecord, HRDocument, CompanySettings, TimesheetEntry, LeaveRequest, AppNotification, ExpenseClaim, ExpenseStatus, PayrollRecord, PerformanceRecord, Goal, Candidate, Job } from './types';
 
 // ==========================================
@@ -41,6 +42,15 @@ const INITIAL_USERS: User[] = [
     status: 'Active',
     canLogin: true
   }
+];
+
+const INITIAL_ATTENDANCE: any[] = [
+  { id: '1', empId: 'USR-001', empName: 'Vikram Malhotra', date: '24/12/2025', clockIn: '09:00 AM', clockOut: '06:00 PM', status: 'Present', production: '9h' },
+  { id: '2', empId: 'USR-002', empName: 'Ananya Iyer', date: '24/12/2025', clockIn: '09:15 AM', clockOut: null, status: 'Present', production: 'In Progress' },
+  { id: '3', empId: 'USR-002', empName: 'Ananya Iyer', date: '23/12/2025', clockIn: '09:30 AM', clockOut: '06:30 PM', status: 'Present', production: '9h' },
+  { id: '4', empId: 'USR-002', empName: 'Ananya Iyer', date: '22/12/2025', clockIn: '09:10 AM', clockOut: '06:00 PM', status: 'Present', production: '8h 50m' },
+  { id: '5', empId: 'USR-002', empName: 'Ananya Iyer', date: '20/12/2025', clockIn: '09:00 AM', clockOut: '05:00 PM', status: 'Half Day', production: '4h' },
+  { id: '6', empId: 'USR-001', empName: 'Vikram Malhotra', date: '23/12/2025', clockIn: '08:45 AM', clockOut: '07:00 PM', status: 'Present', production: '10h 15m' }
 ];
 
 const INITIAL_JOBS: Job[] = [
@@ -126,7 +136,7 @@ class MockDatabase {
   constructor() {
     this.users = JSON.parse(localStorage.getItem('vatsin_users') || JSON.stringify(INITIAL_USERS));
     this.payroll = JSON.parse(localStorage.getItem('vatsin_payroll') || JSON.stringify(INITIAL_PAYROLL));
-    this.attendance = JSON.parse(localStorage.getItem('vatsin_attendance') || '[]');
+    this.attendance = JSON.parse(localStorage.getItem('vatsin_attendance') || JSON.stringify(INITIAL_ATTENDANCE));
     this.leaves = JSON.parse(localStorage.getItem('vatsin_leaves') || '[]');
     this.expenses = JSON.parse(localStorage.getItem('vatsin_expenses') || JSON.stringify(INITIAL_EXPENSES));
     this.candidates = JSON.parse(localStorage.getItem('vatsin_candidates') || JSON.stringify(INITIAL_CANDIDATES));
@@ -314,7 +324,12 @@ class MockDatabase {
   }
 
   // --- ATTENDANCE ---
-  async getAttendance(): Promise<AttendanceRecord[]> { return this.attendance; }
+  async getAttendance(user?: User): Promise<AttendanceRecord[]> {
+    if (!user || user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
+      return this.attendance;
+    }
+    return this.attendance.filter(a => a.empId === user.id);
+  }
   
   async toggleClock(userId: string): Promise<User> {
     const u = this.users.find(x => x.id === userId);
@@ -324,12 +339,12 @@ class MockDatabase {
     if (u.clockedIn) {
       this.attendance.push({
         id: 'att_' + Date.now(), empId: u.id, empName: u.name, date: new Date().toLocaleDateString('en-GB'),
-        clockIn: new Date().toLocaleTimeString(), clockOut: null, status: 'ON-TIME'
+        clockIn: new Date().toLocaleTimeString(), clockOut: null, status: 'ON-TIME', production: 'In Progress'
       } as any);
     } else {
       const today = new Date().toLocaleDateString('en-GB');
       const rec = this.attendance.find(a => a.empId === u.id && a.date === today && !a.clockOut);
-      if (rec) { rec.clockOut = new Date().toLocaleTimeString(); }
+      if (rec) { rec.clockOut = new Date().toLocaleTimeString(); rec.production = '9h'; }
     }
     this.save();
     return { ...u };

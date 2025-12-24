@@ -1,3 +1,4 @@
+
 /**
  * VatsinHR Enterprise Backend (MERGED MASTER)
  * Combines Legacy Modules (Expenses, Performance) with Next-Gen Modules (Payroll, ATS, Indian Localization).
@@ -93,8 +94,17 @@ let performance = [
 
 // ATTENDANCE & OTHERS
 let attendance = [
-    { id: 1, userId: 'USR-001', date: '23/12/2025', checkIn: '09:00 AM', checkOut: '06:00 PM', status: 'Present', production: '9h' },
-    { id: 2, userId: 'USR-002', date: '23/12/2025', checkIn: '09:15 AM', checkOut: '06:30 PM', status: 'Present', production: '9h 15m' }
+  // Today's records
+  { id: 1, userId: 'USR-001', date: '24/12/2025', checkIn: '09:00 AM', checkOut: '06:00 PM', status: 'Present', production: '9h' },
+  { id: 2, userId: 'USR-002', date: '24/12/2025', checkIn: '09:15 AM', checkOut: null, status: 'Present', production: 'In Progress' },
+  
+  // Past Records (Ananya)
+  { id: 3, userId: 'USR-002', date: '23/12/2025', checkIn: '09:30 AM', checkOut: '06:30 PM', status: 'Present', production: '9h' },
+  { id: 4, userId: 'USR-002', date: '22/12/2025', checkIn: '09:10 AM', checkOut: '06:00 PM', status: 'Present', production: '8h 50m' },
+  { id: 5, userId: 'USR-002', date: '20/12/2025', checkIn: '09:00 AM', checkOut: '05:00 PM', status: 'Half Day', production: '4h' },
+
+  // Past Records (Vikram)
+  { id: 6, userId: 'USR-001', date: '23/12/2025', checkIn: '08:45 AM', checkOut: '07:00 PM', status: 'Present', production: '10h 15m' }
 ];
 let notifications = [];
 let leaves = [];
@@ -397,12 +407,28 @@ app.delete('/api/documents/:id', authenticateToken, (req, res) => {
 });
 
 // ==========================================
-// 10. ROUTES: ATTENDANCE (New)
+// 10. ROUTES: ATTENDANCE
 // ==========================================
 
-app.get('/api/attendance/:userId', authenticateToken, (req, res) => {
-    const history = attendance.filter(a => a.userId === req.params.userId);
-    res.json(history);
+app.get('/api/attendance', authenticateToken, (req, res) => {
+    let filteredHistory = [];
+    if (req.user.role === 'ADMIN' || req.user.role === 'MANAGER') {
+        filteredHistory = attendance;
+    } else {
+        filteredHistory = attendance.filter(a => a.userId === req.user.id);
+    }
+    
+    // Map with user names for admin view
+    const results = filteredHistory.map(a => {
+        const user = users.find(u => u.id === a.userId);
+        return {
+            ...a,
+            empId: a.userId,
+            empName: user ? user.name : 'Unknown Employee'
+        };
+    });
+    
+    res.json(results);
 });
 
 app.post('/api/attendance/clock-in', authenticateToken, (req, res) => {
@@ -422,7 +448,7 @@ app.post('/api/attendance/clock-in', authenticateToken, (req, res) => {
 app.post('/api/attendance/clock-out', authenticateToken, (req, res) => {
     const { userId, time } = req.body;
     const todayStr = new Date().toLocaleDateString('en-GB');
-    const record = attendance.find(a => a.userId === userId && a.date === todayStr);
+    const record = attendance.find(a => a.userId === userId && a.date === todayStr && a.checkOut === null);
     if(record) {
         record.checkOut = time;
         record.production = '9h'; // Dummy calculation

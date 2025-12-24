@@ -88,7 +88,7 @@ const App: React.FC = () => {
               <Route path="/recruitment" element={<Recruitment />} />
               <Route path="/payroll" element={<Payroll user={auth.user} />} />
               <Route path="/my-payroll" element={<Payroll user={auth.user} />} />
-              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/attendance" element={<Attendance user={auth.user} />} />
               <Route path="/leaves" element={<LeaveApplication user={auth.user} />} />
               <Route path="/admin/leaves" element={<LeaveAdminPanel user={auth.user} />} />
               <Route path="/timesheet" element={<Timesheet user={auth.user} />} />
